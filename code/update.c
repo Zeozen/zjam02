@@ -20,30 +20,37 @@ Gamestate UpdateMain
     r2 move = r2_mul_x(i2_to_r2(controller->directional_vector), 1.f);
     viewport->camera->pos = add_r2(cam_loc, move);
 
-    if (ActionPressed(controller, A_WHLU))
+    if (ActionPressed(controller, A_WHLU) && viewport->camera->zoom < ZSDL_CAMERA_MAX_ZOOM)
         viewport->camera->zoom += 0.1f;
-    if (ActionPressed(controller, A_WHLD))
+    if (ActionPressed(controller, A_WHLD) && (viewport->camera->zoom > ZSDL_CAMERA_MIN_ZOOM))
         viewport->camera->zoom -= 0.1f;
 
-    viewport->camera->zoom = ClampR32(viewport->camera->zoom, 0.2f, 10.f);
+    
 
     static r2 grab_cam_loc = ZERO_R2;
     if (ActionPressed(controller, A_MB_L))
     {
         SetCursor(viewport, assets, ZSDL_CURSOR_GRAB);
-        grab_cam_loc = i2_to_r2(MouseLocation(controller, viewport));
+        grab_cam_loc = CamToPos(MouseLocation(controller, viewport), viewport);
     }
     if (ActionHeld(controller, A_MB_L))
     {
-        r2 current_mouse_loc = i2_to_r2(MouseLocation(controller, viewport));
+        r2 current_mouse_loc = CamToPos(MouseLocation(controller, viewport), viewport);
         r2 delta = sub_r2(current_mouse_loc, grab_cam_loc);
         viewport->camera->pos = sub_r2(viewport->camera->pos, delta);
-        grab_cam_loc = i2_to_r2(MouseLocation(controller, viewport));
+        grab_cam_loc = CamToPos(MouseLocation(controller, viewport), viewport);
     }
     if (ActionReleased(controller, A_MB_L))
     {
         SetCursor(viewport, assets, ZSDL_CURSOR_HAND);
     }
+
+    if (ActionReleased(controller, A_JUMP))
+    {
+        SpawnExplorer(game, t);
+    }
+
+    TickExplorers(game, viewport, t, dt);
 
     return GAMESTATE_MAIN;
 }

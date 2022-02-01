@@ -37,8 +37,10 @@
 /*^^^^^^^^^^^^^^^^^^^^ CONSTANTSANTS END ^^^^^^^^^^^^^^^^^^^^*/
 
 /*vvvvvvvvvvvvvvvvvvvv STATICS BEGIN vvvvvvvvvvvvvvvvvvvv*/
-u8 SINE(u8 a);
-r32 SINE_R32(u8 a);
+u8 NSIN(u8 a);
+u8 NCOS(u8 a);
+r32 RSIN(u8 a);
+r32 RCOS(u8 a);
 r32 CURVE(r32 t, r32 k);
 r32 SMOOTH(r32 t, r32 k);
 

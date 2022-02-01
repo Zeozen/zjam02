@@ -8,6 +8,8 @@
 #include "zmath.h"
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv CAMERA vvvvvvvvvvvvvvvvvvvvvvvvvv*/
+#define ZSDL_CAMERA_MAX_ZOOM 2.f
+#define ZSDL_CAMERA_MIN_ZOOM 0.5f
 typedef struct Camera
 {
     r2 pos;
@@ -18,8 +20,6 @@ typedef struct Camera
 
 Camera* CreateCamera(r2 pos);
 void FreeCamera(Camera* camera);
-
-
 
 
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ CAMERA ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
@@ -273,6 +273,7 @@ void CleanRenderTargets(Viewport* viewport);
 void FinalizeRenderAndPresent(Viewport* viewport);
 
 void DrawNumber(Viewport* viewport, SDL_Texture* texture, u32 number, i2 size_src, i2 size_dst, i2 location, u32 max_digits);
+void ZSDL_RenderDrawCircle(Viewport* viewport, u32 radius, i2 center);
 
 i2 PosToCam(r2 pos, Viewport* viewport);
 r2 CamToPos(i2 cam, Viewport* viewport);

@@ -811,8 +811,8 @@ i2 PosToCam( r2 pos, Viewport* viewport)
 
 r2 CamToPos( i2 cam, Viewport* viewport)
 {
-	r32 x = ((cam.x + viewport->camera->pos.x) * viewport->camera->zoom) - ZSDL_INTERNAL_HALFWIDTH;
-	r32 y = ((cam.y + viewport->camera->pos.y) * viewport->camera->zoom) - ZSDL_INTERNAL_HALFHEIGHT;
+	r32 x = ((cam.x + viewport->camera->pos.x) / viewport->camera->zoom) - ZSDL_INTERNAL_HALFWIDTH;
+	r32 y = ((cam.y + viewport->camera->pos.y) / viewport->camera->zoom) - ZSDL_INTERNAL_HALFHEIGHT;
 	return make_r2(x, y);
 	//return PixToPos(CamToPix(cam, viewport->camera));
 }
@@ -1006,6 +1006,46 @@ void DrawNumber(Viewport* viewport, SDL_Texture* texture, u32 number, i2 size_sr
 		src.y = size_src.y * digits[i];	
 		dst.x = location.x + (max_digits * size_dst.x) - (size_dst.x * i);
 		SDL_RenderCopy(viewport->renderer, texture, &src, &dst);
+	}
+}
+
+void ZSDL_RenderDrawCircle(Viewport* viewport, u32 radius, i2 center)
+{
+	u32 diameter = (radius * 2);
+
+	i32 x = (radius - 1);
+	i32 y = 0;
+	i32 tx = 1;
+	i32 ty = 1;
+	i32 error = (tx - diameter);
+
+
+	while (x >= y)
+	{
+
+      	//  Each of the following renders an octant of the circle
+      	SDL_RenderDrawPoint(viewport->renderer, center.x + x, center.y - y);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x + x, center.y + y);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x - x, center.y - y);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x - x, center.y + y);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x + y, center.y - x);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x + y, center.y + x);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x - y, center.y - x);
+      	SDL_RenderDrawPoint(viewport->renderer, center.x - y, center.y + x);
+
+		if (error <= 0)
+		{
+			++y;
+			error += ty;
+			ty += 2;
+		}
+
+		if (error > 0)
+		{
+			--x;
+			tx += 2;
+			error += (tx - diameter);
+		}
 	}
 }
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ RENDER SUPPORT FUNCTIONS ^^^^^^^^^^^^^^^^^^^^^^^^^^*/

@@ -6,7 +6,7 @@ LDFLAGS= $(shell pkg-config --libs-only-other $(pkglibs))
 LDLIBS = $(shell pkg-config --libs-only-L --libs-only-l $(pkglibs)) -lm
 
 
-EXECUTABLE_NAME= zengine
+EXECUTABLE_NAME= explorers
 
 # Folders
 SRC= ./code/
