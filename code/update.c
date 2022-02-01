@@ -16,9 +16,9 @@ Gamestate UpdateMain
     if (ActionPressed(controller, A_QUIT))
         return GAMESTATE_EXIT;
 
-    r2 cam_loc = viewport->camera->pos;
-    r2 move = r2_mul_x(i2_to_r2(controller->directional_vector), 1.f);
-    viewport->camera->pos = add_r2(cam_loc, move);
+    //r2 cam_loc = viewport->camera->pos;
+    //r2 move = r2_mul_x(i2_to_r2(controller->directional_vector), 1.f);
+    //viewport->camera->pos = add_r2(cam_loc, move);
 
     if (ActionPressed(controller, A_WHLU) && viewport->camera->zoom < ZSDL_CAMERA_MAX_ZOOM)
         viewport->camera->zoom += 0.1f;
@@ -49,6 +49,30 @@ Gamestate UpdateMain
     {
         SpawnExplorer(game, t);
     }
+
+    if (ActionReleased(controller, A_MOVL))
+    {
+        game->inspiritaion_rot_start-= 64;
+    }
+
+    if (ActionReleased(controller, A_MOVR))
+    {
+        game->inspiritaion_rot_start+= 64;
+    }
+
+    if (ActionReleased(controller, A_MOVU))
+    {
+        for (i32 i = 0; i < MAX_LIFEPATH_SEGMENTS; i++)
+            game->inspiration_lifepath[i] = RNG();
+    }
+
+    if (ActionReleased(controller, A_MOVD))
+    {
+        for (i32 i = 0; i < MAX_LIFEPATH_SEGMENTS; i++)
+            game->inspiration_lifepath[i] = RNG();
+    }
+
+
 
     TickExplorers(game, viewport, t, dt);
 

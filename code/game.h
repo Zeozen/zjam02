@@ -24,9 +24,10 @@ typedef enum
 // PEEPS
 #define MAX_WAYPOINTS 100
 #define MAX_EXPLORERS 1024
-#define MAX_LIFEPATH_SEGMENTS 8
-#define BIAS_TURN_LEFT 0.33f
-#define BIAS_TURN_RGHT 0.66f
+#define MAX_LIFEPATH_SEGMENTS 4
+#define BIAS_TURN_LEFT 0.4f
+#define BIAS_TURN_RGHT 0.6f
+#define EXPLORER_ROTATION_STRENGTH 10
 typedef struct
 {
     u32 id;
@@ -34,17 +35,20 @@ typedef struct
     u32 lifetime;
     u8 alive;
     u8 rot;
-    u8 rot_aim;
+    u8 rot_start;
     r2 pos;
     r32 speed;
+    r32 homesickness;
     r32 lifepath[MAX_LIFEPATH_SEGMENTS];
     u32 current_waypoint;
-    SDL_Point waypoints[MAX_WAYPOINTS];
+    r2 waypoints[MAX_WAYPOINTS];
 } Explorer;
 
 
 #define GAMEDATA_MAX 8
-#define POPULATION_START_VALUE 32
+#define POPULATION_START_VALUE 512
+#define INSPIRATION_VARIABILITY_ROT_START 25
+#define INSPIRATION_VARIABILITY_LIFEPATH 0.4f
 typedef struct
 {
     u8* data[GAMEDATA_MAX];
@@ -52,6 +56,8 @@ typedef struct
     u32 population_max;
     u32 population_now;
     u32 latest_explorer;
+    u32 inspiritaion_rot_start;
+    r32 inspiration_lifepath[MAX_LIFEPATH_SEGMENTS];
 } Game;
 
 
