@@ -600,18 +600,21 @@ void CollectInput(Controller* c)
 	c->move_vector.x		= -keystate[SDL_SCANCODE_A] + keystate[SDL_SCANCODE_D];
 	c->directional_vector.y = -keystate[SDL_SCANCODE_UP] + keystate[SDL_SCANCODE_DOWN];
 	c->directional_vector.x = -keystate[SDL_SCANCODE_LEFT] + keystate[SDL_SCANCODE_RIGHT];
-	c->actions |= ACTION(A_MB_L) * !!(mousestate & SDL_BUTTON_LMASK);
-	c->actions |= ACTION(A_MB_R) * !!(mousestate & SDL_BUTTON_RMASK);
-	c->actions |= ACTION(A_JUMP) * keystate[SDL_SCANCODE_SPACE];
-	c->actions |= ACTION(A_MOVL) * keystate[SDL_SCANCODE_LEFT];
-	c->actions |= ACTION(A_MOVR) * keystate[SDL_SCANCODE_RIGHT];
-	c->actions |= ACTION(A_MOVU) * keystate[SDL_SCANCODE_UP];
-	c->actions |= ACTION(A_MOVD) * keystate[SDL_SCANCODE_DOWN];
-	c->actions |= ACTION(A_PLAY) * keystate[SDL_SCANCODE_F9];
-	c->actions |= ACTION(A_EDIT) * keystate[SDL_SCANCODE_F1];
-	c->actions |= ACTION(A_DBUG) * keystate[SDL_SCANCODE_F11];
-	c->actions |= ACTION(A_ESC) * keystate[SDL_SCANCODE_ESCAPE];
-	c->actions |= ACTION(A_SHFT) * keystate[SDL_SCANCODE_LSHIFT];
+	c->actions |= ACTION(A_MB_L) 	* !!(mousestate & SDL_BUTTON_LMASK);
+	c->actions |= ACTION(A_MB_R) 	* !!(mousestate & SDL_BUTTON_RMASK);
+	c->actions |= ACTION(A_JUMP) 	* keystate[SDL_SCANCODE_SPACE];
+	c->actions |= ACTION(A_MOVL) 	* keystate[SDL_SCANCODE_LEFT];
+	c->actions |= ACTION(A_MOVR) 	* keystate[SDL_SCANCODE_RIGHT];
+	c->actions |= ACTION(A_MOVU) 	* keystate[SDL_SCANCODE_UP];
+	c->actions |= ACTION(A_MOVD) 	* keystate[SDL_SCANCODE_DOWN];
+	c->actions |= ACTION(A_PLAY) 	* keystate[SDL_SCANCODE_F9];
+	c->actions |= ACTION(A_EDIT) 	* keystate[SDL_SCANCODE_F1];
+	c->actions |= ACTION(A_DBUG) 	* keystate[SDL_SCANCODE_F11];
+	c->actions |= ACTION(A_ESC) 	* keystate[SDL_SCANCODE_ESCAPE];
+	c->actions |= ACTION(A_SHFT) 	* keystate[SDL_SCANCODE_LSHIFT];
+	c->actions |= ACTION(A_ONE) 	* keystate[SDL_SCANCODE_1];
+	c->actions |= ACTION(A_TWO) 	* keystate[SDL_SCANCODE_2];
+	c->actions |= ACTION(A_THREE) 	* keystate[SDL_SCANCODE_3];
 
 	SDL_Event e;
 	while (SDL_PollEvent(&e))
@@ -801,18 +804,26 @@ void FreeCamera(Camera* camera)
 
 i2 PosToCam( r2 pos, Viewport* viewport)
 {
+	//camera pos in screenspace = (ZSDL_INTERNAL_HALFWIDTH, ZSDL_INTERNAL_HALFHEIGHT)
+	i2 c_cam = make_i2(ZSDL_INTERNAL_HALFWIDTH, ZSDL_INTERNAL_HALFHEIGHT);
+	r2 delta = r2_mul_x(sub_r2(pos, viewport->camera->pos), viewport->camera->zoom);
+	i2 result = add_i2(c_cam, r2_to_i2(delta));
 	//r32 x = pos.x * viewport->camera->zoom - viewport->camera->pos.x * viewport->camera->zoom
-	r32 x = ((pos.x - viewport->camera->pos.x) * viewport->camera->zoom) + ZSDL_INTERNAL_HALFWIDTH;
-	r32 y = ((pos.y - viewport->camera->pos.y) * viewport->camera->zoom) + ZSDL_INTERNAL_HALFHEIGHT;
-	return r2_to_i2(make_r2(x, y));
+	//r32 x = ((pos.x - viewport->camera->pos.x) * viewport->camera->zoom) + ZSDL_INTERNAL_HALFWIDTH;
+	//r32 y = ((pos.y - viewport->camera->pos.y) * viewport->camera->zoom) + ZSDL_INTERNAL_HALFHEIGHT;
+	//return r2_to_i2(make_r2(x, y));
+	return result;
 	//r2 result = r2_mul_x(pos, viewport->camera->zoom);
 	//return r2_to_i2(sub_r2(result, r2_mul_x(viewport->camera->pos, viewport->camera->zoom)));
 }
 
 r2 CamToPos( i2 cam, Viewport* viewport)
 {
-	r32 x = ((cam.x + viewport->camera->pos.x) / viewport->camera->zoom) - ZSDL_INTERNAL_HALFWIDTH;
-	r32 y = ((cam.y + viewport->camera->pos.y) / viewport->camera->zoom) - ZSDL_INTERNAL_HALFHEIGHT;
+	i2 c_cam = make_i2(ZSDL_INTERNAL_HALFWIDTH, ZSDL_INTERNAL_HALFHEIGHT);
+	r32 x = viewport->camera->pos.x + (cam.x/viewport->camera->zoom) - (c_cam.x/viewport->camera->zoom);
+	r32 y = viewport->camera->pos.y + (cam.y/viewport->camera->zoom) - (c_cam.y/viewport->camera->zoom);
+	//r32 x = (((cam.x - ZSDL_INTERNAL_HALFWIDTH)+ viewport->camera->pos.x) / viewport->camera->zoom) ;
+	//r32 y = (((cam.y - ZSDL_INTERNAL_HALFHEIGHT)+ viewport->camera->pos.y) / viewport->camera->zoom) ;
 	return make_r2(x, y);
 	//return PixToPos(CamToPix(cam, viewport->camera));
 }
@@ -1048,6 +1059,35 @@ void ZSDL_RenderDrawCircle(Viewport* viewport, u32 radius, i2 center)
 		}
 	}
 }
+
+void DrawNineSliced(Viewport* viewport, struct SDL_Texture* source_texture, i2 src_loc, i2 dst_loc, i2 dst_siz, i32 slice_dimensions)
+{
+
+	SDL_Rect src_slice = { src_loc.x, src_loc.y, slice_dimensions, slice_dimensions };
+	SDL_Rect dst_slice = { dst_loc.x, dst_loc.y, slice_dimensions, slice_dimensions };
+
+	i32 x_coord[3] = { dst_loc.x, dst_loc.x + slice_dimensions, dst_loc.x + dst_siz.x - slice_dimensions };
+	i32 y_coord[3] = { dst_loc.y, dst_loc.y + slice_dimensions, dst_loc.y + dst_siz.y - slice_dimensions };
+	i32 widths[3] = { slice_dimensions, dst_siz.x - (2 * slice_dimensions), slice_dimensions };
+	i32 heights[3] = { slice_dimensions, dst_siz.y - (2 * slice_dimensions), slice_dimensions };
+	
+	for (i32 v = 0; v < 3; v++)
+	{
+		for (i32 u = 0; u < 3; u++)
+		{
+			src_slice.x = src_loc.x + u * slice_dimensions;
+			src_slice.y = src_loc.y + v * slice_dimensions;
+
+			dst_slice.x = x_coord[u];
+			dst_slice.y = y_coord[v];
+			dst_slice.w = widths[u];
+			dst_slice.h = heights[v];
+
+			SDL_RenderCopy(viewport->renderer, source_texture, &src_slice, &dst_slice);
+		}
+	}
+}
+
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ RENDER SUPPORT FUNCTIONS ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv FONT TEXT DRAWING vvvvvvvvvvvvvvvvvvvvvvvvvv*/

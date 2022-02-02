@@ -68,6 +68,7 @@ r32 ClampR32(r32 a,  r32 min,  r32 max);
 u32	LerpU32(i32 a, i32 b, r32 alpha);
 i32	LerpI32(i32 a, i32 b, r32 alpha);
 r32 LerpR32(r32 a, r32 b, r32 alpha);
+u8 LerpU8(u8 a, u8 b, r32 alpha);
 
 u32	MinU32(u32 a,  u32 b);
 i32	MinI32(i32 a,  i32 b);

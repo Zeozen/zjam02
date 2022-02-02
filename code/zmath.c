@@ -105,6 +105,7 @@ r32 RNG()
 	return (r32)xp/(r32)UINT64_MAX;
 }
 
+
 // r32 RNG() //returns from 0.f to 1.f
 // {
 // 	//static u32 seed = 14123;
@@ -674,6 +675,39 @@ i32 LerpI32(i32 a, i32 b, r32 alpha)
 r32 LerpR32(r32 a, r32 b, r32 alpha)
 {
 	return (a*(1.f-alpha) + b*alpha);
+}
+
+u8 LerpU8(u8 a, u8 b, r32 alpha)
+{
+	alpha = ClampR32(alpha, 0.f, 1.f);
+	if (a > b)
+	{
+		if (((0xff - a) + b) < (a - b))
+		{
+			//lerp upwards through overflow
+			return (u8)( (b * alpha) - ((0xff - a) * (1.f - alpha)) );
+		}
+		else
+		{
+			return (u8)(a * (1.f - alpha)) + (b * alpha);
+		}
+	}
+	else if (a < b)
+	{
+		if (((0xff - b) + a) < (b - a))
+		{
+			// lerp downwards through overflow
+			return (u8)( (b * alpha) - ((0xff) * (1.f - alpha) + (a * (1.f - alpha))) );
+		}
+		else
+		{
+			return (u8)(a * (1.f - alpha)) + (b * alpha);
+		}
+	}
+	else
+	{
+		return a;
+	}
 }
 
 u32 MinU32( u32 a,  u32 b)

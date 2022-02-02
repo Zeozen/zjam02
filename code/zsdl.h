@@ -146,6 +146,10 @@ void LoadFont(Assets* assets, i32 identifier, SDL_Renderer* renderer, const char
 #define A_FSCR 15 // fullscreen
 #define A_ESC 16
 #define A_RSIZ 17 // resize window
+#define A_ONE 18 //numbers, usually action or hotbar
+#define A_TWO 19 //numbers, usually action or hotbar
+#define A_THREE 20 //numbers, usually action or hotbar
+#define A_FOUR 21 //numbers, usually action or hotbar
 
 typedef struct 
 {
@@ -274,6 +278,7 @@ void FinalizeRenderAndPresent(Viewport* viewport);
 
 void DrawNumber(Viewport* viewport, SDL_Texture* texture, u32 number, i2 size_src, i2 size_dst, i2 location, u32 max_digits);
 void ZSDL_RenderDrawCircle(Viewport* viewport, u32 radius, i2 center);
+void DrawNineSliced(Viewport* viewport, struct SDL_Texture* source_texture, i2 src_loc, i2 dst_loc, i2 dst_siz, i32 slice_dimensions);
 
 i2 PosToCam(r2 pos, Viewport* viewport);
 r2 CamToPos(i2 cam, Viewport* viewport);

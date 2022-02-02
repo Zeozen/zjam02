@@ -234,15 +234,15 @@ int main(int argc, char* argv[])
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv LOAD ASSETS vvvvvvvvvvvvvvvvvvvvvvvvvv*/
 //LoadTexture(x);
-LoadFont(assets, 0, viewport->renderer, "assets/font/font_zsys.png");
-LoadFont(assets, 1, viewport->renderer, "assets/font/font_zsys_6x6.png");
+LoadFont(assets, 0, viewport->renderer, "assets/font/font_zsys_6x6.png");
 LoadCursor(assets, ZSDL_CURSOR_POINT, ZSDL_CURSOR_POINT_HOT_X, ZSDL_CURSOR_POINT_HOT_Y, "assets/cursor/cur_zsys_point.png");
 LoadCursor(assets, ZSDL_CURSOR_HAND, ZSDL_CURSOR_HAND_HOT_X, ZSDL_CURSOR_HAND_HOT_Y, "assets/cursor/cur_zsys_hand.png");
 LoadCursor(assets, ZSDL_CURSOR_GRAB, ZSDL_CURSOR_GRAB_HOT_X, ZSDL_CURSOR_GRAB_HOT_Y, "assets/cursor/cur_zsys_grab.png");
 LoadCursor(assets, ZSDL_CURSOR_CROSS, ZSDL_CURSOR_CROSS_HOT_X, ZSDL_CURSOR_CROSS_HOT_Y, "assets/cursor/cur_zsys_cross.png");
+LoadTexture(assets, T_UI_ATLAS, viewport->renderer, "assets/ui/zsys_nineslice.png");
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ LOAD ASSETS ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
-SetCursor(viewport, assets, ZSDL_CURSOR_HAND);
+SetCursor(viewport, assets, ZSDL_CURSOR_POINT);
 
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv MAIN LOOP vvvvvvvvvvvvvvvvvvvvvvvvvv*/
