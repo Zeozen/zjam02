@@ -18,11 +18,25 @@
 #define CUR_GRAB SRF_CURSOR_GRAB
 #define CUR_CROSSHAIR SRF_CURSOR_CROSSHAIR 
 
+#define MUS_BGM 0
 //sound effect aliases
 typedef enum
 {
     SFX_UI_BTN_HOVER,
     SFX_UI_BTN_PRESS,
+    SFX_DISCOVERY,
+    SFX_HOVER,
+    SFX_SELECT,
+    SFX_SPAWN1,
+    SFX_SPAWN2,
+    SFX_SPAWN3,
+    SFX_SPAWN4,
+    SFX_TAP1,
+    SFX_TAP2,
+    SFX_TAP3,
+    SFX_PICKUP,
+    SFX_DROP,
+    SFX_DRAG
 } SoundEffects;
 
 

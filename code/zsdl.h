@@ -8,8 +8,8 @@
 #include "zmath.h"
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv CAMERA vvvvvvvvvvvvvvvvvvvvvvvvvv*/
-#define ZSDL_CAMERA_MAX_ZOOM 2.f
-#define ZSDL_CAMERA_MIN_ZOOM 0.5f
+#define ZSDL_CAMERA_MAX_ZOOM 8.f
+#define ZSDL_CAMERA_MIN_ZOOM 0.25f
 typedef struct Camera
 {
     r2 pos;
@@ -114,6 +114,7 @@ typedef struct
 Assets* CreateAssets(Viewport* viewport);
 void FreeAssets(Assets* assets);
 void LoadSound(Assets* assets, i32 identifier, const char* path);
+void LoadMusic(Assets* assets, i32 identifier, const char* path);
 void LoadSurface(Assets* assets, i32 identifier, const char* path);
 void LoadString(Assets* assets, i32 identifier, const char* path);
 void LoadTexture(Assets* assets, i32 identifier, SDL_Renderer* renderer, const char* path);
@@ -150,6 +151,7 @@ void LoadFont(Assets* assets, i32 identifier, SDL_Renderer* renderer, const char
 #define A_TWO 19 //numbers, usually action or hotbar
 #define A_THREE 20 //numbers, usually action or hotbar
 #define A_FOUR 21 //numbers, usually action or hotbar
+#define A_TAB 22
 
 typedef struct 
 {

@@ -28,6 +28,10 @@ b8 SetupSDL()
 		{
 			Mix_Volume(i, MIX_MAX_VOLUME/2);
 		}
+		for (i32 i = 0; i < 4; i++)
+			Mix_Volume(SFX_SPAWN1+i, MIX_MAX_VOLUME/12);
+		Mix_Volume(SFX_DRAG, MIX_MAX_VOLUME/12);
+		Mix_Volume(SFX_HOVER, MIX_MAX_VOLUME/14);
 
 		//// init SDL_TTF
 		//if (TTF_Init() == -1)
@@ -369,6 +373,30 @@ void LoadSound(Assets* assets, i32 identifier, const char* path)
 	}
 }
 
+void LoadMusic(Assets* assets, i32 identifier, const char* path)
+{
+		if ((assets->mus[identifier] != NULL) || (identifier >= ASSETBANK_SOUNDS_MAX))
+	{
+		printf("LoadSound error: sound already exists at specified identifier%d, or identifier was invalid.\n",
+			   identifier);
+		return;
+	}
+	else
+	{
+		Mix_Music* loaded_music = Mix_LoadMUS(path);
+		if (loaded_music == NULL)
+		{
+			printf("Unable to load sound from %s! SDL Error: %s\n", path, SDL_GetError());
+			return;
+		}
+		else
+		{
+			assets->mus[identifier] = loaded_music;
+			return;
+		}
+	}
+}
+
 void LoadCursor(Assets* assets, i32 identifier, i32 cursor_hotspot_x, i32 cursor_hotspot_y, const char* path)
 {
 	if ((assets->sur[identifier] != NULL) || (identifier >= ASSETBANK_SURFACES_MAX))
@@ -615,6 +643,7 @@ void CollectInput(Controller* c)
 	c->actions |= ACTION(A_ONE) 	* keystate[SDL_SCANCODE_1];
 	c->actions |= ACTION(A_TWO) 	* keystate[SDL_SCANCODE_2];
 	c->actions |= ACTION(A_THREE) 	* keystate[SDL_SCANCODE_3];
+	c->actions |= ACTION(A_TAB) 	* keystate[SDL_SCANCODE_TAB];
 
 	SDL_Event e;
 	while (SDL_PollEvent(&e))

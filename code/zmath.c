@@ -88,6 +88,20 @@ r32 CURVE(r32 t, r32 k)
 //RNG
 #define ROTL(d,lrot) ((d<<(lrot)) | (d>>(8*sizeof(d)-(lrot))))
 
+static i32 ZRNG_SEED = 1;
+void SEED_ZRNG()
+{
+	ZRNG_SEED = time(NULL);
+} 
+r32 ZRNG()
+{
+	ZRNG_SEED *= 16807;	
+	return (r32)ZRNG_SEED * 4.6566129e-010f;
+	/*
+	This turns into a handy 0-1 random number if you take off the sign bit:
+	(r32)(ZRNG_SEED & 0x7FFFFFFF) * 4.6566129e-010f;
+	*/
+}
 
 r32 RNG() 
 {
@@ -130,6 +144,13 @@ r32 RNG()
 r32 RNEG() //returns from -1.f to 1.f
 {
 	return (RNG() - 0.5f) * 2.f;
+}
+
+r32 COINTOSS()
+{
+	r32 r = RNG();
+	b8 c = (r > 0.5f);
+	return ((1.f * c) + (-1.f * !c));
 }
 
 u32 RUINTG(u32 min, u32 max)
@@ -403,6 +424,12 @@ r2 r2_rot_60_ccw(r2 a)
 r2 r2_rot_t(r2 a, r32 t)
 {
 	return make_r2(a.x * cosf(t) - a.y * sinf(t), a.x * sinf(t) + a.y * cosf(t));
+}
+
+r2 r32_to_rot(r32 a)
+{
+	u8 bitdegree = (u8)(ClampR32(a, -1.f, 1.f) * 0xff);
+	return make_r2(RCOS(bitdegree), RSIN(bitdegree));
 }
 
 i2 i2_sign( i2 a)
@@ -789,6 +816,26 @@ r32 AbsR32( r32 a)
 	return a * ((a > 0) - (a < 0));
 }
 
+
+r32 Wrap(r32 a)
+{
+	r32 remainder = fmodf(a, 2.f);
+	
+	r32 integral;
+	r32 frac = AbsR32(modff(remainder, &integral));
+	if (a < -1.f)
+		return 1.f - frac;
+	else if (a > 1.f)
+		return -1.f + frac;
+	else
+		return a;
+	//return remainder + -1.f;
+}
+
+r32 BiasR32(r32 a)
+{
+	return ((a + 1.f) * 0.5f);
+}
 /*~~~~~~~~~~~~~~~~~~~~ HELPERS END ~~~~~~~~~~~~~~~~~~~~*/
 
 

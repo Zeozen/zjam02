@@ -15,7 +15,7 @@ void RenderMain
 {/*-----------------------------------------------------------*/
     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_BACKGROUND]);
 
-    //draw world
+//draw world
     SDL_SetRenderDrawColor(viewport->renderer, 0x22, 0x15, 0x15, 0xff);
     SDL_RenderFillRect(viewport->renderer, NULL);
 
@@ -24,61 +24,111 @@ void RenderMain
     SDL_RenderDrawLine(viewport->renderer, origo_to_screen.x, 0, origo_to_screen.x, ZSDL_INTERNAL_HEIGHT);
     SDL_RenderDrawLine(viewport->renderer, 0, origo_to_screen.y, ZSDL_INTERNAL_WIDTH, origo_to_screen.y);
     
-    //draw home
+//draw home
     SDL_SetRenderDrawColor(viewport->renderer, 0xbb, 0xbb, 0xbb, 0xbb);
     ZSDL_RenderDrawCircle(viewport, game->home_radius * viewport->camera->zoom, PosToCam(ZERO_R2, viewport));
 
 
     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_ENTITIES]);
-    //draw peeps
+//draw peeps
     DrawPeeps(game, viewport);
-    //DrawExplorers(game, viewport);
 
     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_FOREGROUND]);
-    //draw tool
+//draw tool
     SDL_SetRenderDrawColor(viewport->renderer, (1 - game->tool_active_id) * 0xff, 0x00, game->tool_active_id * 0xff, 0x99);
     if (game->tool_active)
         ZSDL_RenderDrawCircle(viewport, game->tool_rad * viewport->camera->zoom, PosToCam(game->tool_pos, viewport));
 
-    SDL_SetRenderDrawColor(viewport->renderer, 0x44, 0x33, 0x33, 0xff);
+//discovery
+    SDL_SetRenderDrawColor(viewport->renderer, 0x55, 0x99, 0xaa, 0xff);
     ZSDL_RenderDrawCircle(viewport, game->discovery_rad * viewport->camera->zoom, PosToCam(game->discovery_pos, viewport));
 
     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_UI]);
 
-    char txt_help[100] = "Click to choose, hold space for camera";
-    DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, make_i2(0, ZSDL_INTERNAL_HEIGHT - assets->fon[0]->siz.y), txt_help);
-    char txt_ideal[30];
-    if (game->ideal_orientation >= 0.f)
-        sprintf(txt_ideal, "extrospection %f", AbsR32(game->ideal_orientation));
+    i2 mloc = MouseLocation(controller, viewport);
+    if (mloc.y >= (ZSDL_INTERNAL_HEIGHT - 5))
+    {
+        char txt_help[100] = "Left mouse: select | Space: camera | Tab: insight";
+        DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, make_i2(0, ZSDL_INTERNAL_HEIGHT - assets->fon[0]->siz.y), txt_help);
+    }
     else
-        sprintf(txt_ideal, "introspection %f", AbsR32(game->ideal_orientation));
-    DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, ZERO_I2, txt_ideal);
-    // for (i32 i = 0; i < MAX_LIFEPATH_SEGMENTS; i++)
-    // {
-    //     sprintf(txt_ideal, "ideal %d: (%d)", i, game->lifepath_ideal[i]);
-    //     DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, make_i2(1, 1 + assets->fon[0]->siz.y*i), txt_ideal);
-    // }
+    {
+        SDL_Rect tab = {ZSDL_INTERNAL_HALFWIDTH - 10, (ZSDL_INTERNAL_HEIGHT - 2), 20, 2};
+        SDL_SetRenderDrawColor(viewport->renderer, 0xff, 0xff, 0xff, 0xaa);
+        SDL_RenderFillRect(viewport->renderer, &tab);
+    }
 
-    // r2 mpos = CamToPos(MouseLocation(controller, viewport), viewport);
-    // static u8 test_target = 10;
-    // static u8 test = 10;
-    // static u32 t = 0; 
-    // static i8 m = 1;
-    // if ((t%50) == 0)
-    // {
-    //     test_target = RNG()*255;
-    // }
-    // if (ActionPressed(controller, A_MOVD))
-    // {
-    //     m *= -1;
-    // }
-    // test = LerpU8(test, test_target, 0.1f);
-    // r2 rotation = make_r2(RCOS(test), RSIN(test));
-    // rotation = r2_mul_x(rotation, 20.f);
-    // i2 test_vec_cam = PosToCam(rotation, viewport);
-    // SDL_SetRenderDrawColor(viewport->renderer, 0x00, 0xff, 0xff, 0xff);
-    // SDL_RenderDrawLine(viewport->renderer, origo_to_screen.x, origo_to_screen.y, test_vec_cam.x, test_vec_cam.y);
-    // t++;
+    if (game->show_ideal)
+    {
+        char ideal_title[10];
+        sprintf(ideal_title, "_ideal_");
+        i2 title_loc = make_i2(1, 2);
+        DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, title_loc, ideal_title);
+        char* names_pos[6] = 
+        {
+            "open",
+            "extrospective",
+            "strong",
+            "focused",
+            "driven",
+            "neurotic"
+        };
+        char* names_neg[6] = 
+        {
+            "closed",
+            "introspective",
+            "weak",
+            "sporadic",
+            "lazy",
+            "calm"
+        };
+
+        i32 select_name[6];
+        select_name[0] = (AbsR32(game->ideal.openness) > 0.5f);
+        select_name[1] = (game->ideal.orientation > 0.f);
+        select_name[2] = (game->ideal.willpower >= 0.f);
+        select_name[3] = (AbsR32(game->ideal.conscientious) < 0.5f);
+        select_name[4] = (AbsR32(game->ideal.motivation) > 0.f);
+        select_name[5] = (AbsR32(game->ideal.neuroticism) > 0.5f);
+        
+        r32 values[6] = 
+        {
+            AbsR32(game->ideal.openness), 
+            game->ideal.orientation, 
+            game->ideal.willpower, 
+            game->ideal.conscientious, 
+            game->ideal.motivation, 
+            game->ideal.neuroticism
+        };
+        
+        i32 l = 0;
+        for (i32 i = 0; i < 6; i++)
+        {
+            i32 title_offset = + assets->fon[0]->siz.y + 6;
+            i2 txt_loc = make_i2(1, l * ( assets->fon[0]->siz.y + 5) + title_offset);
+            if (select_name[i])
+                DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, txt_loc, names_pos[i]);
+            else
+                DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, txt_loc, names_neg[i]);
+
+            l++;
+            txt_loc = make_i2(1, l * ( assets->fon[0]->siz.y + 5) + title_offset);
+            char value_txt[20];
+            sprintf(value_txt, "%f", values[i]);
+            DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, make_i2(txt_loc.x, txt_loc.y - 2), value_txt);
+            l++;
+        }
+
+        char disc[12];
+        char disc_num[10];
+        sprintf(disc, "discoveries");
+        sprintf(disc_num, "%d", game->num_discoveries);
+        DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, make_i2(ZSDL_INTERNAL_WIDTH - (12 * assets->fon[0]->siz.x), 2), disc);
+        DrawTextScreen(viewport, assets->fon[0], COLOR_WHITE, make_i2(ZSDL_INTERNAL_WIDTH - (10 * assets->fon[0]->siz.x), 4 + assets->fon[0]->siz.y), disc_num);
+    }
+
+
+
     #ifdef DBUG_MOUSE
     char txt_mraw[50];
     char txt_mpos[50];

@@ -110,6 +110,8 @@ printf("Game entering state \t%s...\n", GamestateName(engine->gamestate_new));
 	            		case GAMESTATE_INIT:
 	            		    break;
 	            		case GAMESTATE_MAIN:
+							Mix_PlayMusic(engine->assets->mus[MUS_BGM], -1);
+							engine->viewport->camera->zoom = ZSDL_CAMERA_MAX_ZOOM;
 	            		    break;
 	            		case GAMESTATE_PLAY:
 	            		    break;
@@ -240,6 +242,20 @@ LoadCursor(assets, ZSDL_CURSOR_HAND, ZSDL_CURSOR_HAND_HOT_X, ZSDL_CURSOR_HAND_HO
 LoadCursor(assets, ZSDL_CURSOR_GRAB, ZSDL_CURSOR_GRAB_HOT_X, ZSDL_CURSOR_GRAB_HOT_Y, "assets/cursor/cur_zsys_grab.png");
 LoadCursor(assets, ZSDL_CURSOR_CROSS, ZSDL_CURSOR_CROSS_HOT_X, ZSDL_CURSOR_CROSS_HOT_Y, "assets/cursor/cur_zsys_cross.png");
 LoadTexture(assets, T_UI_ATLAS, viewport->renderer, "assets/ui/zsys_nineslice.png");
+LoadMusic(assets, MUS_BGM, "assets/sound/explorers.ogg");
+LoadSound(assets, SFX_DISCOVERY, "assets/sound/discovery.wav");
+LoadSound(assets, SFX_HOVER, "assets/sound/hover.wav");
+LoadSound(assets, SFX_SELECT, "assets/sound/select.wav");
+LoadSound(assets, SFX_SPAWN1, "assets/sound/spawn_01.wav");
+LoadSound(assets, SFX_SPAWN2, "assets/sound/spawn_02.wav");
+LoadSound(assets, SFX_SPAWN3, "assets/sound/spawn_03.wav");
+LoadSound(assets, SFX_SPAWN4, "assets/sound/spawn_04.wav");
+LoadSound(assets, SFX_TAP1, "assets/sound/tap_01.wav");
+LoadSound(assets, SFX_TAP2, "assets/sound/tap_02.wav");
+LoadSound(assets, SFX_TAP3, "assets/sound/tap_03.wav");
+LoadSound(assets, SFX_PICKUP, "assets/sound/pickup.wav");
+LoadSound(assets, SFX_DROP, "assets/sound/drop.wav");
+LoadSound(assets, SFX_DRAG, "assets/sound/drag.wav");
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ LOAD ASSETS ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 SetCursor(viewport, assets, ZSDL_CURSOR_POINT);
