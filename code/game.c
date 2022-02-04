@@ -31,9 +31,8 @@ char* GetGamestateName(Gamestate state)
 Game* CreateGame()
 {
     Game* new_game = malloc(sizeof(Game));
-	
-	RestartGame(new_game);
 
+	RestartGame(new_game);
     return new_game;
 }
 
@@ -43,6 +42,8 @@ void FreeGame(Game* game)
         free(game);
     printf("Game freed.\n");
 }
+
+
 
 void RestartGame(Game* game)
 {
@@ -69,8 +70,10 @@ void RestartGame(Game* game)
     game->ideal.openness 		= RNEG();	       
 
 	//spawn first discovery
-	game->discovery_pos = r2_mul_x(r2_rot_t(r32_to_rot(game->ideal.birthplace), ZPI), game->home_radius * 2);
-	game->discovery_rad = HOME_RADIUS_START_VALUE;
+	//game->discovery_pos = r2_mul_x(r2_rot_t(r32_to_rot(game->ideal.birthplace), ZPI), game->home_radius * 2);
+	game->discovery_pos = ZERO_R2;
+	game->discovery_rad = 0.f;
+	game->discovery_rad_max = 0.f;
 	game->num_discoveries = 0;
 	game->show_ideal = 0;
 }
@@ -111,7 +114,7 @@ void SpawnPeep(Game* game, Assets* assets, u32 t)
 	game->peeps[id].vel = r2_mul_x(spawn_rot, game->peeps[id].traits.orientation );
 	game->peeps[id].rot = norm_r2(game->peeps[id].vel);
 
-	
+	game->peeps[id].activated = 1;
 	game->peeps[id].lifespan = game->home_radius * 10 + game->peeps[id].traits.willpower * game->home_radius; 
 	//game->peeps[id].lifespan = 200;
 	i32 channel = SFX_SPAWN1 + ClampR32(RNG()*4, 0, 4);
@@ -119,7 +122,7 @@ void SpawnPeep(Game* game, Assets* assets, u32 t)
 	game->new_peep_id = (game->new_peep_id + 1) % game->population_max;
 }
 
-void TickPeeps(Game* game, Viewport* viewport, Assets* assets, u32 t, r32 dt)
+void TickPeeps(Game* game, Viewport* viewport, Assets* assets, Particles* particles,  u32 t, r32 dt)
 {
 	r32 r = RNG();
 	for (i32 i = 0; i < game->population_max; i++)
@@ -151,12 +154,12 @@ void TickPeeps(Game* game, Viewport* viewport, Assets* assets, u32 t, r32 dt)
 
 
 
-				game->peeps[i].waypoints[(u32)(life_percent*100)] = game->peeps[i].pos;
+				game->peeps[i].waypoints[(u32)(life_percent*MAX_WAYPOINTS)] = game->peeps[i].pos;
 
 				r2 d_delta = sub_r2(game->discovery_pos, game->peeps[i].pos);
 				if (len2_r2(d_delta) <= game->discovery_rad * game->discovery_rad)
 				{
-					SpawnNewDiscovery(game, assets);
+					SpawnNewDiscovery(game, assets, particles, t, 0);
 					
 				}
 			}
@@ -172,13 +175,16 @@ void TickTool(Game* game, Assets* assets)
 {
 	for (i32 i = 0; i < game->population_max; i++)
 	{
-		r2 delta = sub_r2(game->tool_pos, game->peeps[i].pos);
-		if (len2_r2(delta) <= game->tool_rad * game->tool_rad)
+		if (game->peeps[i].activated)
 		{
-			game->ideal = game->peeps[i].traits;
-			if (game->ideal_id != i)
-				Mix_PlayChannel(SFX_SELECT, assets->sfx[SFX_SELECT], 0);
-			game->ideal_id = i;
+			r2 delta = sub_r2(game->tool_pos, game->peeps[i].pos);
+			if (len2_r2(delta) <= game->tool_rad * game->tool_rad)
+			{
+				game->ideal = game->peeps[i].traits;
+				if (game->ideal_id != i)
+					Mix_PlayChannel(SFX_SELECT, assets->sfx[SFX_SELECT], 0);
+				game->ideal_id = i;
+			}
 		}
 	}
 }
@@ -188,32 +194,38 @@ void DrawPeeps(Game* game, Viewport* viewport)
 	SDL_SetRenderDrawBlendMode(viewport->renderer, SDL_BLENDMODE_BLEND);
 	for (i32 i = 0; i < game->population_max; i++)
 	{
-		r32 biased_orientation = (game->peeps[i].traits.orientation + 1.f) * 0.5f;
-		r32 biased_neuroticism = (game->peeps[i].traits.birthplace + 1.f) * 0.5f;
-		r32 biased_conscientiousness = (game->peeps[i].traits.conscientious + 1.f) * 0.5f;
-		u8 r = (u8)(biased_neuroticism * 255); 
-		u8 g = (u8)(biased_orientation * 255);
-		u8 b = (u8)(biased_conscientiousness * 255);
-		//u8 r = 128;
-		//u8 g = (u8)(biased_orientation * 255);
-		//u8 b = 255 - g;
-
-		SDL_SetRenderDrawColor(viewport->renderer, r, g, b, 0x44);
-		SDL_Point wps[MAX_WAYPOINTS];
-		for (i32 j = 0; j < MAX_WAYPOINTS; j++)
+		if (game->peeps[i].activated)
 		{
-			i2 wp = PosToCam(game->peeps[i].waypoints[j], viewport);
-			wps[j] = (SDL_Point){wp.x, wp.y};
+			r32 birth = (game->peeps[i].traits.birthplace + 1.f) * 0.5f;
+			r32 biased_orientation = (game->peeps[i].traits.orientation + 1.f) * 0.5f;
+			r32 biased_motivation = (game->peeps[i].traits.motivation + 1.f) * 0.5f;
+			r32 biased_openness = (game->peeps[i].traits.openness + 1.f) * 0.5f;
+			r32 biased_neuro = (game->peeps[i].traits.neuroticism + 1.f) * 0.5f;
+			u8 r = (u8)(biased_neuro * 255); 
+			u8 g = (u8)(biased_orientation * 255);
+			u8 b = (u8)(biased_openness * 255 );
+			//u8 r = 128;
+			//u8 g = (u8)(biased_orientation * 255);
+			//u8 b = 255 - g;
+			
+			SDL_SetRenderDrawColor(viewport->renderer, r, g, b, 0x44);
+			SDL_Point wps[MAX_WAYPOINTS];
+			for (i32 j = 0; j < MAX_WAYPOINTS; j++)
+			{
+				r32 depth = LerpR32(1.f, 0.99f, PARAMETRIC(j / (r32)MAX_WAYPOINTS));
+				i2 wp = PosToCam(game->peeps[i].waypoints[j], depth, viewport);
+				wps[j] = (SDL_Point){wp.x, wp.y};
+			}
+			SDL_RenderDrawPoints(viewport->renderer, wps, MAX_WAYPOINTS);
+			i2 pos = PosToCam(game->peeps[i].pos, 1.f, viewport);
+			if (game->ideal_id == i)
+			{
+				SDL_SetRenderDrawColor(viewport->renderer, 0xff, 0xff, 0xff, 0xff);	
+				ZSDL_RenderDrawCircle(viewport, 2, pos);
+			}
+			SDL_SetRenderDrawColor(viewport->renderer, r, g, b, 0xff);
+			SDL_RenderDrawPoint(viewport->renderer, pos.x, pos.y);	
 		}
-		SDL_RenderDrawPoints(viewport->renderer, wps, MAX_WAYPOINTS);
-		i2 pos = PosToCam(game->peeps[i].pos, viewport);
-		if (game->ideal_id == i)
-		{
-			SDL_SetRenderDrawColor(viewport->renderer, 0xff, 0xff, 0xff, 0xff);	
-			ZSDL_RenderDrawCircle(viewport, 2, pos);
-		}
-		SDL_SetRenderDrawColor(viewport->renderer, r, g, b, 0xff);
-		SDL_RenderDrawPoint(viewport->renderer, pos.x, pos.y);	
 	}
 	SDL_SetRenderDrawBlendMode(viewport->renderer, SDL_BLENDMODE_NONE);
 }
@@ -223,27 +235,47 @@ void KillPeep(Game* game, u32 id)
 	game->peeps[id].alive = 0;
 }
 
-void SpawnNewDiscovery(Game* game, Assets* assets)
+void SpawnNewDiscovery(Game* game, Assets* assets, Particles* particles, u32 t, b8 first)
 {
-	
-	game->discovery_rad = DISCOVERY_BASE_RAD +  RNEG() * 2.f;
-	game->home_radius++;
-	if (game->population_max <( MAX_POPULATION - 32))
-		game->population_max += 16;
-	game->num_discoveries++;
-	// if ((game->num_discoveries % 4) == 0)
-	// {
-		r32 rx = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
-		r32 ry = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
-		game->discovery_pos = make_r2(rx, ry);	
+	if (first)
+	{
+		game->discovery_pos = r2_mul_x(r2_rot_t(r32_to_rot(game->ideal.birthplace), ZPI), game->home_radius * 2);
+		game->discovery_rad_max = DISCOVERY_BASE_RAD + 2.f;
+		game->discovery_rad = 0.f;
+		game->t0_discovery_spawned = t;
 		Mix_PlayChannel(SFX_DISCOVERY, assets->sfx[SFX_DISCOVERY], 0);
-		
-	// }
-	// else
-	// {
-	// 	r32 rx = RNG()*255;
-	// 	r32 ry = RNG()*255;
-	// 	r2 rot = make_r2(RCOS(rx), RSIN(ry));
-	// 	game->discovery_pos = r2_mul_n(rot, game->home_radius + game->discovery_rad * 2);
-	// }
+	}
+	else
+	{
+		SpawnBubble(particles, 256, ZERO_R2, ZERO_R2, ZERO_R2, 1.01f, 0.f, game->home_radius * 2, (SDL_Color){0xff, 0xff, 0xff, 0x44}, (SDL_Color){0xff, 0xff, 0xff, 0x00});
+		SpawnBubble(particles, 150, ZERO_R2, ZERO_R2, ZERO_R2, 1.01f, game->home_radius, game->home_radius + 1, (SDL_Color){0xff, 0xff, 0xff, 0x44}, (SDL_Color){0xff, 0xff, 0xff, 0x00});
+		game->home_radius++;
+		SpawnBubble(particles, 300, ZERO_R2, ZERO_R2, ZERO_R2, 1.01f, game->home_radius, game->home_radius + 5, (SDL_Color){0xff, 0xff, 0xff, 0x44}, (SDL_Color){0xff, 0xff, 0xff, 0x00});
+		if (game->population_max <( MAX_POPULATION - 32))
+			game->population_max += 16;
+		Mix_PlayChannel(SFX_DISCOVERY, assets->sfx[SFX_DISCOVERY], 0);
+
+		game->t0_discovery_spawned = t;
+		game->discovery_rad = 1;
+		game->discovery_rad_max = DISCOVERY_BASE_RAD +  RNEG() * 2.f;
+		game->num_discoveries++;
+
+		if (COINTOSS() > 0.f) //extrospective discovery
+		{
+			r2 r_rot = make_r2(RCOS(RNG()*255), RSIN(RNG()*255));
+			r_rot = r2_mul_x(r_rot, game->home_radius + game->discovery_rad_max * 4 * RNG());
+			r32 rx = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
+			r32 ry = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
+			game->discovery_pos = r_rot;	
+
+		}
+		else 
+		{
+			r32 rx = RNEG() * (game->home_radius - (game->discovery_rad_max * 2));
+			r32 ry = RNEG() * (game->home_radius - (game->discovery_rad_max * 2));
+			game->discovery_pos = make_r2(rx, ry);	
+		}
+	}
+
+	SpawnBubble(particles, 128, game->discovery_pos, ZERO_R2, ZERO_R2, 1.f, 0.f, game->discovery_rad_max * 2, (SDL_Color){0x00, 0xff, 0xff, 0xff}, (SDL_Color){0xff, 0xff, 0xff, 0x00});
 }

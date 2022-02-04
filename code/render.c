@@ -6,27 +6,95 @@
 /*-----------------------------------------------------------*/
 void RenderMain
 (
+    u32 t_r,
     Viewport* viewport, 
     Game* game, 
     Controller* controller, 
-    Dots* dots,
+    Particles* particles,
     Assets* assets
 )/*-----------------------------------------------------------*/
 {/*-----------------------------------------------------------*/
-    SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_BACKGROUND]);
+
+
+    switch (game->main_sequence)
+    {
+        case 0: //fade to title
+        {
+            SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_UI]);
+            SDL_Rect src_title = {0, 0, 288, 16};
+            SDL_Rect dst_title = {ZSDL_INTERNAL_HALFWIDTH - src_title.w / 2, ZSDL_INTERNAL_HALFHEIGHT - src_title.y / 2, 288, 16};
+            SDL_RenderCopy(viewport->renderer, assets->tex[T_UI_ATLAS], &src_title, &dst_title);
+            break;
+        }
+        case 1: //waiting for start
+        {
+            SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_UI]);
+            SDL_Rect src_title = {0, 0, 288, 16};
+            SDL_Rect dst_title = {ZSDL_INTERNAL_HALFWIDTH - src_title.w / 2, ZSDL_INTERNAL_HALFHEIGHT - src_title.y / 2, 288, 16};
+            SDL_RenderCopy(viewport->renderer, assets->tex[T_UI_ATLAS], &src_title, &dst_title);
+
+            char prompt[20] = "- PRESS  SPACE -";
+            u8 sin = NSIN(t_r);
+            DrawTextScreen(viewport, assets->fon[0], (SDL_Color){sin, sin, sin, sin}, make_i2(ZSDL_INTERNAL_HALFWIDTH - assets->fon[0]->siz.x * 8, dst_title.y + 16 + assets->fon[0]->siz.y), prompt);
+            break;
+        }
+        case 2: //fade out title
+        {
+            SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_UI]);
+            SDL_Rect src_title = {0, 0, 288, 16};
+            SDL_Rect dst_title = {ZSDL_INTERNAL_HALFWIDTH - src_title.w / 2, ZSDL_INTERNAL_HALFHEIGHT - src_title.y / 2, 288, 16};
+            SDL_RenderCopy(viewport->renderer, assets->tex[T_UI_ATLAS], &src_title, &dst_title);
+            break;
+        }
+        case 3: //fade in stars
+        {
+
+            break;
+        }
+        case 4: //zoom into home, go to play which starts spawn and game
+        {
+            //draw home
+            SDL_SetRenderDrawColor(viewport->renderer, 0xbb, 0xbb, 0xbb, 0xbb);
+            ZSDL_RenderDrawCircle(viewport, game->home_radius * viewport->camera->zoom, PosToCam(ZERO_R2, 1.f, viewport));
+            break;
+        }
+    }
+
+
+
+    SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_POST_PROCESS]);
+    u8 current_fade = GET8IN64(viewport->settings, ZSDL_SETTINGS_BYTE_FADE_ALPHA);
+    SDL_SetRenderDrawColor(viewport->renderer, 0x00, 0x00, 0x00, current_fade);
+    SDL_RenderClear(viewport->renderer);
+}
+
+/*-----------------------------------------------------------*/
+/*-----------------------------------------------------------*/
+void RenderPlay
+(
+    u32 t_r,
+    Viewport* viewport, 
+    Game* game, 
+    Controller* controller, 
+    Particles* particles,
+    Assets* assets
+)/*-----------------------------------------------------------*/
+{/*-----------------------------------------------------------*/
+     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_BACKGROUND]);
 
 //draw world
-    SDL_SetRenderDrawColor(viewport->renderer, 0x22, 0x15, 0x15, 0xff);
-    SDL_RenderFillRect(viewport->renderer, NULL);
+    //SDL_SetRenderDrawColor(viewport->renderer, 0x22, 0x15, 0x15, 0xff);
+    //SDL_SetRenderDrawColor(viewport->renderer, 0x00, 0x00, 0x00, 0xff);
+    //SDL_RenderFillRect(viewport->renderer, NULL);
 
-    i2 origo_to_screen = PosToCam(ZERO_R2, viewport);
-    SDL_SetRenderDrawColor(viewport->renderer, 0xcc, 0xaa, 0xaa, 0x55);
-    SDL_RenderDrawLine(viewport->renderer, origo_to_screen.x, 0, origo_to_screen.x, ZSDL_INTERNAL_HEIGHT);
-    SDL_RenderDrawLine(viewport->renderer, 0, origo_to_screen.y, ZSDL_INTERNAL_WIDTH, origo_to_screen.y);
+    // i2 origo_to_screen = PosToCam(ZERO_R2, viewport);
+    // SDL_SetRenderDrawColor(viewport->renderer, 0xcc, 0xaa, 0xaa, 0x55);
+    // SDL_RenderDrawLine(viewport->renderer, origo_to_screen.x, 0, origo_to_screen.x, ZSDL_INTERNAL_HEIGHT);
+    // SDL_RenderDrawLine(viewport->renderer, 0, origo_to_screen.y, ZSDL_INTERNAL_WIDTH, origo_to_screen.y);
     
 //draw home
     SDL_SetRenderDrawColor(viewport->renderer, 0xbb, 0xbb, 0xbb, 0xbb);
-    ZSDL_RenderDrawCircle(viewport, game->home_radius * viewport->camera->zoom, PosToCam(ZERO_R2, viewport));
+    ZSDL_RenderDrawCircle(viewport, game->home_radius * viewport->camera->zoom, PosToCam(ZERO_R2, 1.f, viewport));
 
 
     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_ENTITIES]);
@@ -37,11 +105,12 @@ void RenderMain
 //draw tool
     SDL_SetRenderDrawColor(viewport->renderer, (1 - game->tool_active_id) * 0xff, 0x00, game->tool_active_id * 0xff, 0x99);
     if (game->tool_active)
-        ZSDL_RenderDrawCircle(viewport, game->tool_rad * viewport->camera->zoom, PosToCam(game->tool_pos, viewport));
+        ZSDL_RenderDrawCircle(viewport, game->tool_rad * viewport->camera->zoom, PosToCam(game->tool_pos, 1.f, viewport));
 
 //discovery
+
     SDL_SetRenderDrawColor(viewport->renderer, 0x55, 0x99, 0xaa, 0xff);
-    ZSDL_RenderDrawCircle(viewport, game->discovery_rad * viewport->camera->zoom, PosToCam(game->discovery_pos, viewport));
+    ZSDL_RenderDrawCircle(viewport, game->discovery_rad * viewport->camera->zoom, PosToCam(game->discovery_pos, 1.f, viewport));
 
     SDL_SetRenderTarget(viewport->renderer, viewport->render_layer[ZSDL_RENDERLAYER_UI]);
 
@@ -147,26 +216,13 @@ void RenderMain
 
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
-void RenderPlay
-(
-    Viewport* viewport, 
-    Game* game, 
-    Controller* controller, 
-    Dots* dots,
-    Assets* assets
-)/*-----------------------------------------------------------*/
-{/*-----------------------------------------------------------*/
-   
-}
-
-/*-----------------------------------------------------------*/
-/*-----------------------------------------------------------*/
 void RenderLose
 (
+    u32 t_r,
     Viewport* viewport, 
     Game* game, 
     Controller* controller, 
-    Dots* dots,
+    Particles* particles,
     Assets* assets
 )/*-----------------------------------------------------------*/
 {/*-----------------------------------------------------------*/

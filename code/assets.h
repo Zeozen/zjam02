@@ -36,7 +36,10 @@ typedef enum
     SFX_TAP3,
     SFX_PICKUP,
     SFX_DROP,
-    SFX_DRAG
+    SFX_DRAG,
+    SFX_WIND,
+    SFX_THEME,
+    SFX_ARRIVAL
 } SoundEffects;
 
 

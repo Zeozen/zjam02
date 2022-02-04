@@ -84,6 +84,18 @@ r32 CURVE(r32 t, r32 k)
 		return ((k * _t) / (k - _t + 1));
 }
 
+/*
+** t = 0 	--> 0
+** t = 0.5	--> 1
+** t = 1	--> 0
+** parametric smoothing inbetween
+*/ 
+r32 PARAMETRIC(r32 t)
+{
+	t = ClampR32(t, 0.f, 1.f);
+	return (-4.f * t * t + 4 * t);
+}
+
 
 //RNG
 #define ROTL(d,lrot) ((d<<(lrot)) | (d>>(8*sizeof(d)-(lrot))))
@@ -146,6 +158,7 @@ r32 RNEG() //returns from -1.f to 1.f
 	return (RNG() - 0.5f) * 2.f;
 }
 
+//returns -1.f or 1.f
 r32 COINTOSS()
 {
 	r32 r = RNG();
@@ -691,16 +704,19 @@ r32 ClampR32( r32 a,  r32 min,  r32 max)
 
 u32 LerpU32(i32 a, i32 b, r32 alpha)
 {
+	alpha = ClampR32(alpha, 0.f, 1.f);
 	return rtou(a*(1.f - alpha) + b * alpha);
 }
 
 i32 LerpI32(i32 a, i32 b, r32 alpha)
 {
+	alpha = ClampR32(alpha, 0.f, 1.f);
 	return rtoi(a*(1.f - alpha) + b * alpha);
 }
 
 r32 LerpR32(r32 a, r32 b, r32 alpha)
 {
+	alpha = ClampR32(alpha, 0.f, 1.f);
 	return (a*(1.f-alpha) + b*alpha);
 }
 

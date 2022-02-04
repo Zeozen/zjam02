@@ -44,6 +44,7 @@ r32 RSIN(u8 a);
 r32 RCOS(u8 a);
 r32 CURVE(r32 t, r32 k);
 r32 SMOOTH(r32 t, r32 k);
+r32 PARAMETRIC(r32 t);
 
 r32 RNG();
 r32 RNEG();

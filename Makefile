@@ -44,7 +44,7 @@ clean:
 # define general rule to link .exe from .o
 $(EXECUTABLE_FILES): $(OBJECT_FILES)
 	@mkdir -p $(@D)
-	$(CC) -o $@ $+ $(LDLIBS) $(LDFLAGS)
+	$(CC) -o $@ $+ $(LDLIBS) $(LDFLAGS) zengine.res
 
 # define general rule to compile .c to .o + refresh all if headers changed
 $(OBJECT_FILES): $(OBJ)/%.o:%.c $(SOURCE_HEADERS)

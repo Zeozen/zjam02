@@ -51,6 +51,7 @@ typedef struct
 {
     u32 t_0; //birth time
     u8 alive; //flag
+    u8 activated;
     u32 lifespan;
     r2 pos;
     r2 vel;
@@ -67,6 +68,9 @@ typedef struct
 #define TOOL_RADIUS_MIN 1
 #define TOOL_RADIUS_MAX 16
 #define DISCOVERY_BASE_RAD 4
+#define DISCOVERY_SPAWN_TIME 500.f
+#define PEEP_SPAWN_TIME_DELAY 150
+#define DISCOVERY_SPAWN_TIME_DELAY 1000
 typedef struct
 {
     u8 data[GAMEDATA_MAX];
@@ -84,10 +88,12 @@ typedef struct
     u32 home_radius;
     r32 population_distrubition; // a == 0.f, b == 1.f
     u32 num_discoveries;
-    r2 old_discovery_pos;
     r2 discovery_pos;
+    r32 discovery_rad_max;
     r32 discovery_rad;
     u32 show_ideal;
+    u32 main_sequence;
+    u32 t0_discovery_spawned;
 } Game;
 
 
@@ -100,10 +106,10 @@ void FreeGame(Game* game);
 void RestartGame(Game* game);
 
 void SpawnPeep(Game* game, Assets* assets, u32 t);
-void TickPeeps(Game* game, Viewport* viewport, Assets* assets, u32 t, r32 dt);
+void TickPeeps(Game* game, Viewport* viewport, Assets* assets, Particles* particles, u32 t, r32 dt);
 void DrawPeeps(Game* game, Viewport* viewport);
 void KillPeep(Game* game, u32 id);
 void TickTool(Game* game, Assets* assets);
-void SpawnNewDiscovery(Game* game, Assets* assets);
+void SpawnNewDiscovery(Game* game, Assets* assets, Particles* particles, u32 t, b8 first);
 
 #endif // GAME_H

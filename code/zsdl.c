@@ -61,7 +61,7 @@ Viewport* CreateViewport(const char* window_title)
 	viewport->window =
 		SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED_DISPLAY(0), SDL_WINDOWPOS_CENTERED_DISPLAY(0),
 						 ZSDL_INTERNAL_WIDTH, ZSDL_INTERNAL_HEIGHT,
-						 SDL_WINDOW_SHOWN | SDL_RENDERER_PRESENTVSYNC | SDL_WINDOW_RESIZABLE/* | SDL_WINDOW_INPUT_GRABBED */);
+						 SDL_WINDOW_SHOWN | SDL_RENDERER_PRESENTVSYNC | SDL_WINDOW_RESIZABLE /*| SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED */);
 	if (viewport->window == NULL)
 	{
 		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -693,63 +693,93 @@ b8 ActionHeld( Controller* c,  u64 action)
 	return ((c->actions & ACTION(action)) && (c->actions & ACTION_PRE(action)));
 }
 
-/*vvvvvvvvvvvvvvvvvvvvvvvvvv DOT PARTICLES vvvvvvvvvvvvvvvvvvvvvvvvvv*/
-Dots* initDots()
+/*vvvvvvvvvvvvvvvvvvvvvvvvvv PARTICLES vvvvvvvvvvvvvvvvvvvvvvvvvv*/
+Particles* InitParticles()
 {
-	Dots* dots = (Dots*)malloc(sizeof(Dots));
-	for (i32 i = 0; i < DOTS_MAX; i++)
-	{
-		dots->dot[i].lifetime		= 0;
-		dots->dot[i].current_life	= 0;
-		dots->dot[i].pos			= ZERO_R2;
-		dots->dot[i].vel			= ZERO_R2;
-		dots->dot[i].acc			= ZERO_R2;
-		dots->dot[i].r = 0;
-		dots->dot[i].g = 0;
-		dots->dot[i].b = 0;
-		dots->dot[i].a = 0;
-		dots->dot[i].r_0 = 0;
-		dots->dot[i].g_0 = 0;
-		dots->dot[i].b_0 = 0;
-		dots->dot[i].a_0 = 0;
-		dots->dot[i].r_1			= 0;
-		dots->dot[i].g_1			= 0;
-		dots->dot[i].b_1			= 0;
-		dots->dot[i].a_1			= 0;
-	}
-	if (dots != NULL)
-		printf("dots initialized.\n");
+	Particles* particles = malloc(sizeof(Particles));
+	memset(particles, 0, sizeof(Particles));
+	// for (i32 i = 0; i < DOTS_MAX; i++)
+	// {
+	// 	particles->dots[i].lifetime		= 0;
+	// 	particles->dots[i].current_life	= 0;
+	// 	particles->dots[i].pos			= ZERO_R2;
+	// 	particles->dots[i].vel			= ZERO_R2;
+	// 	particles->dots[i].acc			= ZERO_R2;
+	// 	particles->dots[i].r = 0;
+	// 	particles->dots[i].g = 0;
+	// 	particles->dots[i].b = 0;
+	// 	particles->dots[i].a = 0;
+	// 	particles->dots[i].r_0 = 0;
+	// 	particles->dots[i].g_0 = 0;
+	// 	particles->dots[i].b_0 = 0;
+	// 	particles->dots[i].a_0 = 0;
+	// 	particles->dots[i].r_1			= 0;
+	// 	particles->dots[i].g_1			= 0;
+	// 	particles->dots[i].b_1			= 0;
+	// 	particles->dots[i].a_1			= 0;
+	// }
+	// for (i32 i = 0; i < BUBBLES_MAX; i++)
+	// {
+	// 	particles->bubbles[i].lifetime		= 0;
+	// 	particles->bubbles[i].current_life	= 0;
+	// 	particles->bubbles[i].pos			= ZERO_R2;
+	// 	particles->bubbles[i].vel			= ZERO_R2;
+	// 	particles->bubbles[i].acc			= ZERO_R2;
+	// 	particles->bubbles[i].rad			= 0.f;
+	// 	particles->bubbles[i].rad_0			= 0.f;
+	// 	particles->bubbles[i].rad_1			= 0.f;
+	// 	particles->bubbles[i].r = 0;
+	// 	particles->bubbles[i].g = 0;
+	// 	particles->bubbles[i].b = 0;
+	// 	particles->bubbles[i].a = 0;
+	// 	particles->bubbles[i].r_0 = 0;
+	// 	particles->bubbles[i].g_0 = 0;
+	// 	particles->bubbles[i].b_0 = 0;
+	// 	particles->bubbles[i].a_0 = 0;
+	// 	particles->bubbles[i].r_1			= 0;
+	// 	particles->bubbles[i].g_1			= 0;
+	// 	particles->bubbles[i].b_1			= 0;
+	// 	particles->bubbles[i].a_1			= 0;
+	// }
+	if (particles != NULL)
+		printf("particles initialized.\n");
 	else
-		printf("dots NOT initialized!\n");
-	return dots;
+		printf("particles could not be initialized!\n");
+	return particles;
 }
 
-b8 SpawnDot(Dots* dots, u16 lifetime, r2 pos, r2 vel, r2 acc, SDL_Color initial_color, SDL_Color final_color)
+
+b8 SpawnBubble(Particles* p, u16 lifetime, r2 pos, r2 vel, r2 acc, r32 depth, r32 initial_radius, r32 final_radius, SDL_Color initial_color, SDL_Color final_color)
 {
-	i32 vacant_dot = -1;
-	for (i32 i = 0; i < DOTS_MAX; i++)
+	i32 id = -1;
+	//TODO: Find way to instantly pick vacant id
+	for (i32 i = 0; i < BUBBLES_MAX; i++)
 	{
-		if (!(dots->dot[i].current_life))
+		if (!(p->bubbles[i].current_life))
 		{
-			vacant_dot = i;
+			id = i;
 			break;
 		}
 	}
-	if (vacant_dot >= 0)
+	if (id >= 0)
 	{
-		dots->dot[vacant_dot].lifetime = lifetime;
-		dots->dot[vacant_dot].current_life = lifetime;
-		dots->dot[vacant_dot].pos = pos;
-		dots->dot[vacant_dot].vel = vel;
-		dots->dot[vacant_dot].acc = acc;
-		dots->dot[vacant_dot].r_0 = initial_color.r;
-		dots->dot[vacant_dot].g_0 = initial_color.g;
-		dots->dot[vacant_dot].b_0 = initial_color.b;
-		dots->dot[vacant_dot].a_0 = initial_color.a;
-		dots->dot[vacant_dot].r_1 = final_color.r;
-		dots->dot[vacant_dot].g_1 = final_color.g;
-		dots->dot[vacant_dot].b_1 = final_color.b;
-		dots->dot[vacant_dot].a_1 = final_color.a;
+		p->bubbles[id].lifetime = lifetime;
+		p->bubbles[id].current_life = lifetime;
+		p->bubbles[id].pos = pos;
+		p->bubbles[id].vel = vel;
+		p->bubbles[id].acc = acc;
+		p->bubbles[id].depth = depth;
+		p->bubbles[id].rad = initial_radius;
+		p->bubbles[id].rad_0 = initial_radius;
+		p->bubbles[id].rad_1 = final_radius;
+		p->bubbles[id].r_0 = initial_color.r;
+		p->bubbles[id].g_0 = initial_color.g;
+		p->bubbles[id].b_0 = initial_color.b;
+		p->bubbles[id].a_0 = initial_color.a;
+		p->bubbles[id].r_1 = final_color.r;
+		p->bubbles[id].g_1 = final_color.g;
+		p->bubbles[id].b_1 = final_color.b;
+		p->bubbles[id].a_1 = final_color.a;
 		return 1;
 	}
 	else
@@ -758,48 +788,123 @@ b8 SpawnDot(Dots* dots, u16 lifetime, r2 pos, r2 vel, r2 acc, SDL_Color initial_
 	}
 }
 
-void tickDots(Dots* dots, u32 t, r32 dt)
+b8 SpawnDot(Particles* p, u16 lifetime, r2 pos, r2 vel, r2 acc, r32 depth, SDL_Color initial_color, SDL_Color final_color)
 {
+	i32 id = -1;
 	for (i32 i = 0; i < DOTS_MAX; i++)
 	{
-		if (dots->dot[i].current_life != 0)
+		if (!(p->dots[i].current_life))
 		{
-			dots->dot[i].current_life--;
-			r32 life_factor = 1.f - (dots->dot[i].current_life / (r32)dots->dot[i].lifetime);
-			dots->dot[i].r = LerpI32(dots->dot[i].r_0, dots->dot[i].r_1, life_factor);
-			dots->dot[i].g = LerpI32(dots->dot[i].g_0, dots->dot[i].g_1, life_factor);
-			dots->dot[i].b = LerpI32(dots->dot[i].b_0, dots->dot[i].b_1, life_factor);
-			dots->dot[i].a = LerpI32(dots->dot[i].a_0, dots->dot[i].a_1, life_factor);
-			dots->dot[i].vel = add_r2(dots->dot[i].vel, r2_mul_x(dots->dot[i].acc, dt));
-			dots->dot[i].pos = add_r2(dots->dot[i].pos, r2_mul_x(dots->dot[i].vel, dt));
+			id = i;
+			break;
+		}
+	}
+	if (id >= 0)
+	{
+		p->dots[id].lifetime = lifetime;
+		p->dots[id].current_life = lifetime;
+		p->dots[id].pos = pos;
+		p->dots[id].vel = vel;
+		p->dots[id].acc = acc;
+		p->dots[id].depth = depth;
+		p->dots[id].r_0 = initial_color.r;
+		p->dots[id].g_0 = initial_color.g;
+		p->dots[id].b_0 = initial_color.b;
+		p->dots[id].a_0 = initial_color.a;
+		p->dots[id].r_1 = final_color.r;
+		p->dots[id].g_1 = final_color.g;
+		p->dots[id].b_1 = final_color.b;
+		p->dots[id].a_1 = final_color.a;
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void TickParticles(Particles* p, u32 t, r32 dt)
+{
+	//TODO SPEEDUP: remove life_factor calculation (divide in inner loop), and figure out a way to remove check for each particle to see if it's alive or not (remove branching in loop)
+	for (i32 i = 0; i < DOTS_MAX; i++)
+	{
+		if (p->dots[i].current_life != 0)
+		{
+			p->dots[i].current_life--;
+			r32 life_factor = 1.f - (p->dots[i].current_life / (r32)p->dots[i].lifetime);
+			p->dots[i].r = LerpI32(p->dots[i].r_0, p->dots[i].r_1, life_factor);
+			p->dots[i].g = LerpI32(p->dots[i].g_0, p->dots[i].g_1, life_factor);
+			p->dots[i].b = LerpI32(p->dots[i].b_0, p->dots[i].b_1, life_factor);
+			p->dots[i].a = LerpI32(p->dots[i].a_0, p->dots[i].a_1, life_factor);
+			p->dots[i].vel = add_r2(p->dots[i].vel, r2_mul_x(p->dots[i].acc, dt));
+			p->dots[i].pos = add_r2(p->dots[i].pos, r2_mul_x(p->dots[i].vel, dt));
+		}
+	}
+	for (i32 i = 0; i < BUBBLES_MAX; i++)
+	{
+		if (p->bubbles[i].current_life != 0)
+		{
+			p->bubbles[i].current_life--;
+			r32 life_factor = 1.f - (p->bubbles[i].current_life / (r32)p->bubbles[i].lifetime);
+			p->bubbles[i].r = LerpI32(p->bubbles[i].r_0, p->bubbles[i].r_1, life_factor);
+			p->bubbles[i].g = LerpI32(p->bubbles[i].g_0, p->bubbles[i].g_1, life_factor);
+			p->bubbles[i].b = LerpI32(p->bubbles[i].b_0, p->bubbles[i].b_1, life_factor);
+			p->bubbles[i].a = LerpI32(p->bubbles[i].a_0, p->bubbles[i].a_1, life_factor);
+			p->bubbles[i].vel = add_r2(p->bubbles[i].vel, r2_mul_x(p->bubbles[i].acc, dt));
+			p->bubbles[i].pos = add_r2(p->bubbles[i].pos, r2_mul_x(p->bubbles[i].vel, dt));
+			p->bubbles[i].rad = LerpR32(p->bubbles[i].rad_0, p->bubbles[i].rad_1, life_factor);
 		}
 	}
 }
 
-void DrawDots(Viewport* viewport, u32 t, Dots* dots)
+
+
+void DrawParticles(Viewport* viewport, u32 t, Particles* p)
 {
+	//TODO SPEEDUP: remove life checking in these loops somehow
 	for (i32 i = 0; i < DOTS_MAX; i++)
 	{
-		if (dots->dot[i].current_life != 0)
+		if (p->dots[i].current_life != 0)
 		{
-			//i2 dot_cam_pos = PosToCam(dots->dot[i].pos, camera);
-			i2 dot_cam_pos = r2_to_i2(dots->dot[i].pos);
-			SDL_SetRenderDrawColor(viewport->renderer, dots->dot[i].r, dots->dot[i].g, dots->dot[i].b, dots->dot[i].a);
-			SDL_RenderDrawPoint(viewport->renderer, dot_cam_pos.x, dot_cam_pos.y);
+			i2 cam_pos = PosToCam(p->dots[i].pos, p->dots[i].depth, viewport);
+			SDL_SetRenderDrawColor(viewport->renderer, p->dots[i].r, p->dots[i].g, p->dots[i].b, p->dots[i].a);
+			SDL_RenderDrawPoint(viewport->renderer, cam_pos.x, cam_pos.y);
+		}
+	}
+	for (i32 i = 0; i < BUBBLES_MAX; i++)
+	{
+		if (p->bubbles[i].current_life != 0)
+		{
+			i2 cam_pos = PosToCam(p->bubbles[i].pos, p->bubbles[i].depth, viewport);
+			SDL_SetRenderDrawColor(viewport->renderer, p->bubbles[i].r, p->bubbles[i].g, p->bubbles[i].b, p->bubbles[i].a);
+			ZSDL_RenderDrawCircle(viewport, p->bubbles[i].rad * viewport->camera->zoom, cam_pos);
 		}
 	}
 }
 
-void FreeDots(Dots* dots)
+
+
+void FreeParticles(Particles* p)
 {
-	free(dots);
-	printf("Dots freed.\n");
+	if (p != NULL)
+	{
+		free(p);
+		p = NULL;
+		printf("FreeParticles(): Particles freed.\n");
+	}
+	else
+	{
+		printf("FreeParticles(): Particles already NULL.\n");
+	}
 }
+
+
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ DOT PARTICLES ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv CAMERA vvvvvvvvvvvvvvvvvvvvvvvvvv*/
-//pass ZSDL_INTERNAL_WIDTH and HEIGHT from zsdl.h when creating a camera
+
+// creates a new camera at given position and allocates memory for it, returning pointer to allocated memory
 Camera* CreateCamera(r2 pos)
 {
 	Camera* new_camera = (Camera*)malloc(sizeof(Camera));
@@ -831,19 +936,19 @@ void FreeCamera(Camera* camera)
 
 
 
-i2 PosToCam( r2 pos, Viewport* viewport)
+i2 PosToCam( r2 pos, r32 depth, Viewport* viewport)
 {
-	//camera pos in screenspace = (ZSDL_INTERNAL_HALFWIDTH, ZSDL_INTERNAL_HALFHEIGHT)
+	r2 para_cpos = r2_mul_x(viewport->camera->pos, 1.f / depth);
 	i2 c_cam = make_i2(ZSDL_INTERNAL_HALFWIDTH, ZSDL_INTERNAL_HALFHEIGHT);
-	r2 delta = r2_mul_x(sub_r2(pos, viewport->camera->pos), viewport->camera->zoom);
+	r2 delta = r2_mul_x(sub_r2(pos, para_cpos), viewport->camera->zoom);
 	i2 result = add_i2(c_cam, r2_to_i2(delta));
-	//r32 x = pos.x * viewport->camera->zoom - viewport->camera->pos.x * viewport->camera->zoom
-	//r32 x = ((pos.x - viewport->camera->pos.x) * viewport->camera->zoom) + ZSDL_INTERNAL_HALFWIDTH;
-	//r32 y = ((pos.y - viewport->camera->pos.y) * viewport->camera->zoom) + ZSDL_INTERNAL_HALFHEIGHT;
-	//return r2_to_i2(make_r2(x, y));
 	return result;
-	//r2 result = r2_mul_x(pos, viewport->camera->zoom);
-	//return r2_to_i2(sub_r2(result, r2_mul_x(viewport->camera->pos, viewport->camera->zoom)));
+
+	//old, without depth, works
+	// i2 c_cam = make_i2(ZSDL_INTERNAL_HALFWIDTH, ZSDL_INTERNAL_HALFHEIGHT);
+	// r2 delta = r2_mul_x(sub_r2(pos, viewport->camera->pos), viewport->camera->zoom);
+	// i2 result = add_i2(c_cam, r2_to_i2(delta));
+	// return result;
 }
 
 r2 CamToPos( i2 cam, Viewport* viewport)
@@ -1120,10 +1225,10 @@ void DrawNineSliced(Viewport* viewport, struct SDL_Texture* source_texture, i2 s
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ RENDER SUPPORT FUNCTIONS ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv FONT TEXT DRAWING vvvvvvvvvvvvvvvvvvvvvvvvvv*/
-void DrawTextWorld(Viewport* viewport, zFont* font, SDL_Color color, r2 pos, const char* text)
+void DrawTextWorld(Viewport* viewport, zFont* font, SDL_Color color, r2 pos, r32 depth, const char* text)
 {
 	i32 i = 0;
-	i2 screen_pos = PosToCam(pos, viewport);
+	i2 screen_pos = PosToCam(pos, depth, viewport);
 	SDL_Rect src = {0, 0, font->siz.x, font->siz.y};
 	SDL_Rect dst = {screen_pos.x, screen_pos.y, font->siz.x, font->siz.y};
 	SDL_SetTextureColorMod(font->glyphs, color.r, color.g, color.b);

@@ -46,11 +46,17 @@ typedef enum
 // viewport settings u64 layout
 // bits for single flags and bytes for numbers
 // bitpos   63                                                                            0
-// bytepos  ____8____ ____7____ ____6____ ____5____ ____4____ ____3____ ____1____ ____0____
+// bytepos  ____7____ ____6____ ____5____ ____4____ ____3____ ____2____ ____1____ ____0____
 //          0000'0000 0000'0000 0000'0000 0000'0000 0000'0000 0000'0000 0000'0000 0000'0000
+// layout                       FADECOLOR FADEALPHA PIXLSCALE CURSOR ID BITFLAGSB BITFLAGSA 
+
 #define ZSDL_SETTINGS_BIT_SCANLINEFILTER 8
-#define ZSDL_SETTINGS_BYTE_PIXELSCALE 6
-#define ZSDL_SETTINGS_BYTE_ACTIVE_CURSOR 5
+#define ZSDL_SETTINGS_BYTE_BITFLAGS_A 0
+#define ZSDL_SETTINGS_BYTE_BITFLAGS_B 1
+#define ZSDL_SETTINGS_BYTE_ACTIVE_CURSOR 2
+#define ZSDL_SETTINGS_BYTE_PIXELSCALE 3
+#define ZSDL_SETTINGS_BYTE_FADE_ALPHA 4
+#define ZSDL_SETTINGS_BYTE_FADE_COLOR 5
 typedef struct
 {
     SDL_Window*     window;
@@ -87,7 +93,7 @@ typedef struct
     i2 spacing;
 } zFont;
 
-void DrawTextWorld(Viewport* viewport, zFont* font, SDL_Color color, r2 pos, const char* text);
+void DrawTextWorld(Viewport* viewport, zFont* font, SDL_Color color, r2 pos, r32 depth, const char* text);
 void DrawTextScreen(Viewport* viewport, zFont* font, SDL_Color color, i2 loc, const char* text);
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ FONT ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
@@ -172,7 +178,7 @@ b8 ActionHeld(Controller* c, u64 action);
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^ INPUT CONTROLLER ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 
-/*vvvvvvvvvvvvvvvvvvvvvvvvvv DOT PARTICLES vvvvvvvvvvvvvvvvvvvvvvvvvv*/
+/*vvvvvvvvvvvvvvvvvvvvvvvvvv PARTICLES vvvvvvvvvvvvvvvvvvvvvvvvvv*/
 #define DOTS_MAX 200
 typedef struct
 {
@@ -193,19 +199,54 @@ typedef struct
 	r2 acc;
 	r2 vel;
 	r2 pos;
+    r32 depth;
 } Dot;
+
+#define BUBBLES_MAX 128
+typedef struct
+{
+	u16 lifetime;
+	u16 current_life;
+	u8 r;
+	u8 b;
+	u8 g;
+	u8 a;
+	u8 r_0;
+	u8 g_0;
+	u8 b_0;
+	u8 a_0;
+	u8 r_1;
+	u8 g_1;
+	u8 b_1;
+	u8 a_1;
+	r2 acc;
+	r2 vel;
+	r2 pos;
+    r32 rad;
+    r32 rad_0;
+    r32 rad_1;
+    r32 depth;
+} Bubble;
+
 
 typedef struct
 {
-	Dot dot[DOTS_MAX];
-} Dots;
+	Dot dots[DOTS_MAX];
+	Bubble bubbles[BUBBLES_MAX];
+} Particles;
 
-Dots* initDots();
-b8 SpawnDot(Dots* dots, u16 lifetime, r2 pos, r2 vel, r2 acc, SDL_Color initial_color, SDL_Color final_color);
-void tickDots(Dots* dots, u32 t, r32 dt);
-void DrawDots(Viewport* viewport, u32 t, Dots* dots);
-void FreeDots(Dots* dots);
-/*^^^^^^^^^^^^^^^^^^^^^^^^^^ DOT PARTICLES ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
+Particles* InitParticles();
+b8 SpawnBubble(Particles* p, u16 lifetime, r2 pos, r2 vel, r2 acc, r32 depth, r32 initial_radius, r32 final_radius, SDL_Color initial_color, SDL_Color final_color);
+b8 SpawnDot(Particles* p, u16 lifetime, r2 pos, r2 vel, r2 acc, r32 depth, SDL_Color initial_color, SDL_Color final_color);
+void TickParticles(Particles* p, u32 t, r32 dt);
+void DrawParticles(Viewport* viewport, u32 t, Particles* p);
+void FreeParticles(Particles* p);
+
+// Dots* initDots();
+// void tickDots(Dots* dots, u32 t, r32 dt);
+// void DrawDots(Viewport* viewport, u32 t, Dots* dots);
+// void FreeDots(Dots* dots);
+/*^^^^^^^^^^^^^^^^^^^^^^^^^^ PARTICLES ^^^^^^^^^^^^^^^^^^^^^^^^^^*/
 
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv GUI vvvvvvvvvvvvvvvvvvvvvvvvvv*/
@@ -250,14 +291,14 @@ char* ButtonStateName(E_BUTTON_STATE state);
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv CURSOR vvvvvvvvvvvvvvvvvvvvvvvvvv*/
 #define ZSDL_CURSOR_BASE_SIZE 15
-#define ZSDL_CURSOR_POINT_HOT_X 1
-#define ZSDL_CURSOR_POINT_HOT_Y 1
+#define ZSDL_CURSOR_POINT_HOT_X 0
+#define ZSDL_CURSOR_POINT_HOT_Y 0
 #define ZSDL_CURSOR_HAND_HOT_X 3
 #define ZSDL_CURSOR_HAND_HOT_Y 8
 #define ZSDL_CURSOR_GRAB_HOT_X 3
 #define ZSDL_CURSOR_GRAB_HOT_Y 8
-#define ZSDL_CURSOR_CROSS_HOT_X 7
-#define ZSDL_CURSOR_CROSS_HOT_Y 7
+#define ZSDL_CURSOR_CROSS_HOT_X 0
+#define ZSDL_CURSOR_CROSS_HOT_Y 0
 typedef enum
 {
     ZSDL_CURSOR_POINT,
@@ -282,7 +323,7 @@ void DrawNumber(Viewport* viewport, SDL_Texture* texture, u32 number, i2 size_sr
 void ZSDL_RenderDrawCircle(Viewport* viewport, u32 radius, i2 center);
 void DrawNineSliced(Viewport* viewport, struct SDL_Texture* source_texture, i2 src_loc, i2 dst_loc, i2 dst_siz, i32 slice_dimensions);
 
-i2 PosToCam(r2 pos, Viewport* viewport);
+i2 PosToCam(r2 pos, r32 depth, Viewport* viewport);
 r2 CamToPos(i2 cam, Viewport* viewport);
 
 #define COLOR(r,g,b,a) (SDL_Color){r, g, b, a}
