@@ -40,6 +40,8 @@ void mainloop(void *arg)
 		current_time = new_time;
 		time_accumulator += frame_time;
 
+
+
 /* LOGIC UPDATE IN FIXED TIMESTEPS */
 		while (time_accumulator >= DT_MS)
 		{
@@ -224,7 +226,7 @@ int main(int argc, char* argv[])
 {
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv INIT vvvvvvvvvvvvvvvvvvvvvvvvvv*/
 	SetupSDL();
-	Viewport* viewport = CreateViewport("zengine");
+	Viewport* viewport = CreateViewport("e x p l o r e r s");
 	Game* game = CreateGame();
 	Controller* controller = CreateController();
 	Assets* assets = CreateAssets(viewport);
@@ -270,6 +272,11 @@ LoadSound(assets, SFX_ARRIVAL, "assets/sound/arrival.wav");
 
 SetCursor(viewport, assets, ZSDL_CURSOR_POINT);
 
+//START IN FULLSCREEN
+ToggleFullscreen(engine->viewport);
+ComputePixelScale(engine->viewport);
+CalculateScreen(engine->viewport);
+RefreshCursors(engine->viewport, engine->assets);
 
 /*vvvvvvvvvvvvvvvvvvvvvvvvvv MAIN LOOP vvvvvvvvvvvvvvvvvvvvvvvvvv*/
 #ifdef __EMSCRIPTEN__

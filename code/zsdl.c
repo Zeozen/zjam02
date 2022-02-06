@@ -32,6 +32,8 @@ b8 SetupSDL()
 			Mix_Volume(SFX_SPAWN1+i, MIX_MAX_VOLUME/12);
 		Mix_Volume(SFX_DRAG, MIX_MAX_VOLUME/12);
 		Mix_Volume(SFX_HOVER, MIX_MAX_VOLUME/14);
+		Mix_Volume(SFX_THEME, MIX_MAX_VOLUME/6);
+		Mix_VolumeMusic(255);
 
 		//// init SDL_TTF
 		//if (TTF_Init() == -1)
@@ -1078,8 +1080,7 @@ void ComputePixelScale(Viewport* viewport)
 		else
 		{
 			// On success, print the current display mode.
-			SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", display_index, current.w, current.h,
-					current.refresh_rate);
+			//SDL_Log("Display #%d: current display mode is %dx%dpx @ %dhz.", display_index, current.w, current.h, current.refresh_rate);
 			screen_height = current.h;
 			screen_width  = current.w;
 		}
@@ -1088,8 +1089,11 @@ void ComputePixelScale(Viewport* viewport)
 	{
 		SDL_GetWindowSize(viewport->window, &screen_width, &screen_height);
 	}
-	u8 renderscale = (screen_width < screen_height) * (screen_width / ZSDL_INTERNAL_WIDTH) +
-					 (screen_width >= screen_height) * (screen_height / ZSDL_INTERNAL_HEIGHT);
+	i32 renderscale_x = screen_width / ZSDL_INTERNAL_WIDTH;
+	i32 renderscale_y = screen_height / ZSDL_INTERNAL_HEIGHT;
+	u8 renderscale = MinI32(renderscale_x, renderscale_y);
+	//u8 renderscale = (screen_width < screen_height) * (screen_width / ZSDL_INTERNAL_WIDTH) +
+	//				 (screen_width >= screen_height) * (screen_height / ZSDL_INTERNAL_HEIGHT);
 	if (renderscale == 0)
 		renderscale = 1;
 	SET8IN64(renderscale, &viewport->settings, ZSDL_SETTINGS_BYTE_PIXELSCALE);

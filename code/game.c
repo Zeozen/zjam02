@@ -173,6 +173,7 @@ void TickPeeps(Game* game, Viewport* viewport, Assets* assets, Particles* partic
 
 void TickTool(Game* game, Assets* assets)
 {
+	u32 prev_ideal_id;
 	for (i32 i = 0; i < game->population_max; i++)
 	{
 		if (game->peeps[i].activated)
@@ -180,10 +181,13 @@ void TickTool(Game* game, Assets* assets)
 			r2 delta = sub_r2(game->tool_pos, game->peeps[i].pos);
 			if (len2_r2(delta) <= game->tool_rad * game->tool_rad)
 			{
-				game->ideal = game->peeps[i].traits;
 				if (game->ideal_id != i)
+				{
+					game->ideal = game->peeps[i].traits;
 					Mix_PlayChannel(SFX_SELECT, assets->sfx[SFX_SELECT], 0);
-				game->ideal_id = i;
+					game->ideal_id = i;
+					break;
+				}
 			}
 		}
 	}
@@ -196,9 +200,9 @@ void DrawPeeps(Game* game, Viewport* viewport)
 	{
 		if (game->peeps[i].activated)
 		{
-			r32 birth = (game->peeps[i].traits.birthplace + 1.f) * 0.5f;
+			//r32 birth = (game->peeps[i].traits.birthplace + 1.f) * 0.5f;
 			r32 biased_orientation = (game->peeps[i].traits.orientation + 1.f) * 0.5f;
-			r32 biased_motivation = (game->peeps[i].traits.motivation + 1.f) * 0.5f;
+			//r32 biased_motivation = (game->peeps[i].traits.motivation + 1.f) * 0.5f;
 			r32 biased_openness = (game->peeps[i].traits.openness + 1.f) * 0.5f;
 			r32 biased_neuro = (game->peeps[i].traits.neuroticism + 1.f) * 0.5f;
 			u8 r = (u8)(biased_neuro * 255); 
@@ -263,9 +267,9 @@ void SpawnNewDiscovery(Game* game, Assets* assets, Particles* particles, u32 t, 
 		if (COINTOSS() > 0.f) //extrospective discovery
 		{
 			r2 r_rot = make_r2(RCOS(RNG()*255), RSIN(RNG()*255));
-			r_rot = r2_mul_x(r_rot, game->home_radius + game->discovery_rad_max * 4 * RNG());
-			r32 rx = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
-			r32 ry = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
+			r_rot = r2_mul_x(r_rot, game->home_radius + game->discovery_rad_max * 2 +  game->discovery_rad_max * 2 * RNG());
+			//r32 rx = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
+			//r32 ry = RNEG() * (game->home_radius + (game->num_discoveries * COINTOSS())) ;
 			game->discovery_pos = r_rot;	
 
 		}

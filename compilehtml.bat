@@ -1,1 +1,0 @@
-emcc ./code/game.c ./code/main.c ./code/render.c ./code/update.c ./code/zgrid.c ./code/zmath.c ./code/zsdl.c -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS="[""png""]" -s USE_SDL_MIXER=2 -fsanitize=undefined -o index.html --shell-file shell.html

@@ -1,5 +1,5 @@
 # Compiler options
-pkglibs = sdl2 SDL2_mixer SDL2_image SDL2_ttf
+pkglibs = sdl2 SDL2_mixer SDL2_image
 CC=gcc
 CFLAGS= -Wall $(shell pkg-config --cflags $(pkglibs))
 LDFLAGS= $(shell pkg-config --libs-only-other $(pkglibs))
@@ -30,7 +30,7 @@ endif
 debug: CFLAGS += -g -Og
 debug: build
 
-release: CFLAGS += -O3
+release: CFLAGS += -O2
 release: clean
 release: build
 
