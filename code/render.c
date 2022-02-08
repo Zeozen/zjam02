@@ -253,7 +253,7 @@ void RenderPlay
             game->ideal.neuroticism
         };
         
-        i32 l = 0;
+        // i32 l = 0;
         for (i32 i = 0; i < 6; i++)
         {
             

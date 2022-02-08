@@ -63,7 +63,11 @@ typedef struct
 #define GAMEDATA_MAX 8
 #define POPULATION_START_VALUE 100
 #define HOME_RADIUS_START_VALUE 10
+#ifdef __EMSCRIPTEN__
+#define MAX_POPULATION 512
+#else
 #define MAX_POPULATION 2048
+#endif
 #define TOOL_RADIUS_DEFAULT 8
 #define TOOL_RADIUS_MIN 1
 #define TOOL_RADIUS_MAX 1

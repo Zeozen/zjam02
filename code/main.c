@@ -112,7 +112,7 @@ printf("Game entering state \t%s...\n", GamestateName(engine->gamestate_new));
 	        		switch (engine->gamestate_new) 
 	        		{
 	            		case GAMESTATE_INIT:
-							engine->viewport->camera->zoom = ZSDL_CAMERA_MIN_ZOOM;
+							engine->viewport->camera->zoom = ZSDL_CAMERA_MAX_ZOOM;
 							SET8IN64(0xff, &engine->viewport->settings, ZSDL_SETTINGS_BYTE_FADE_ALPHA);
 							engine->game->main_sequence = 0;
 	            		    break;
@@ -273,7 +273,7 @@ LoadSound(assets, SFX_ARRIVAL, "assets/sound/arrival.wav");
 SetCursor(viewport, assets, ZSDL_CURSOR_POINT);
 
 //START IN FULLSCREEN
-ToggleFullscreen(engine->viewport);
+//ToggleFullscreen(engine->viewport);
 ComputePixelScale(engine->viewport);
 CalculateScreen(engine->viewport);
 RefreshCursors(engine->viewport, engine->assets);

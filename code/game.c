@@ -173,7 +173,7 @@ void TickPeeps(Game* game, Viewport* viewport, Assets* assets, Particles* partic
 
 void TickTool(Game* game, Assets* assets)
 {
-	u32 prev_ideal_id;
+	// u32 prev_ideal_id;
 	for (i32 i = 0; i < game->population_max; i++)
 	{
 		if (game->peeps[i].activated)

@@ -1,1 +1,0 @@
-windres zengine.rc -O coff -o zengine.res

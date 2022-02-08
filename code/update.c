@@ -140,32 +140,31 @@ Gamestate UpdatePlay
     static u32 idle_timer = 0;
     r2 mpos = CamToPos(MouseLocation(controller, viewport), viewport);
 
-    // if (ActionPressed(controller, A_WHLU))
-    // {
-    //     if (game->cam_active && (viewport->camera->zoom < ZSDL_CAMERA_MAX_ZOOM))
-    //     {
-    //         //viewport->camera->zoom += 0.1f;
-    //         viewport->camera->zoom *= 1.1f;
-    //     }
-    //     if (game->tool_active)
-    //     {
-    //         game->tool_rad = ClampU32(game->tool_rad - 1, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX);
-    //     }
-    // }
+    if (ActionPressed(controller, A_WHLU))
+    {
+        if (game->cam_active && (viewport->camera->zoom < ZSDL_CAMERA_MAX_ZOOM))
+        {
+            viewport->camera->zoom *= 1.1f;
+        }
+        if (game->tool_active)
+        {
+            game->tool_rad = ClampU32(game->tool_rad - 1, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX);
+        }
+    }
         
         
-    // if (ActionPressed(controller, A_WHLD))
-    // {
-    //     if (game->cam_active && (viewport->camera->zoom > ZSDL_CAMERA_MIN_ZOOM))
-    //     {
-    //         //viewport->camera->zoom -= 0.1f;
-    //         viewport->camera->zoom *= 0.9f;
-    //     }
-    //     if (game->tool_active)
-    //     {
-    //         game->tool_rad = ClampU32(game->tool_rad + 1, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX);
-    //     }
-    // } 
+    if (ActionPressed(controller, A_WHLD))
+    {
+    //    if (game->cam_active && (viewport->camera->zoom > ZSDL_CAMERA_MAX_ZOOM - ((r32)game->home_radius)/(r32)HOME_RADIUS_START_VALUE))
+        if (game->cam_active && (viewport->camera->zoom > ZSDL_CAMERA_MIN_ZOOM))
+        {
+            viewport->camera->zoom *= 0.9f;
+        }
+        if (game->tool_active)
+        {
+            game->tool_rad = ClampU32(game->tool_rad + 1, TOOL_RADIUS_MIN, TOOL_RADIUS_MAX);
+        }
+    } 
     
         
 
@@ -208,7 +207,7 @@ Gamestate UpdatePlay
             hover_volume = LerpR32(hover_volume, 28.f, 0.01f);
             TickTool(game, assets);
         }
-        idle_timer = 0;
+        // idle_timer = 0;
     }
 
     if (ActionReleased(controller, A_MB_L))
@@ -224,6 +223,7 @@ Gamestate UpdatePlay
             SetCursor(viewport, assets, ZSDL_CURSOR_POINT);
             Mix_HaltChannel(SFX_DRAG);
             //Mix_HaltChannel(SFX_HOVER);
+            idle_timer = 0;
         }
     }
 
@@ -276,17 +276,24 @@ Gamestate UpdatePlay
     r2 star_max = CamToPos(make_i2(-ZSDL_INTERNAL_HALFWIDTH, -ZSDL_INTERNAL_HALFHEIGHT), viewport);
     SpawnDot(particles, 128, make_r2(viewport->camera->pos.x + RNEG() * star_max.x, viewport->camera->pos.y + RNEG() * star_max.y), ZERO_R2, ZERO_R2, 4.f + RNG()*4.f, (SDL_Color){0xff, 0xff, 0xff, 0x44}, (SDL_Color){0xff, 0xff, 0xff, 0x00});
     
-    idle_timer++;
+    // idle_timer++;
 
-    if (idle_timer >= 2000) 
-    {
-        if ( viewport->camera->zoom > ZSDL_CAMERA_MIN_ZOOM)
-            viewport->camera->zoom -= 0.01f;
-    }
-    else
-    {
-        viewport->camera->zoom = LerpR32(viewport->camera->zoom, ZSDL_CAMERA_MAX_ZOOM, 0.025f);
-    }
+    // if (idle_timer >= 2000)
+    // {
+    //     if (!game->cam_active)
+    //     {
+    //         if ( viewport->camera->zoom > ZSDL_CAMERA_MIN_ZOOM)
+    //             viewport->camera->zoom -= 0.01f;
+    //     }
+    // }
+    // else
+    // {
+    //     if (!game->cam_active)
+    //     {
+    //         viewport->camera->zoom = LerpR32(viewport->camera->zoom, ZSDL_CAMERA_MAX_ZOOM, 0.01f);
+    //         viewport->camera->pos = lerp_r2(viewport->camera->pos, ZERO_R2, 0.025f);
+    //     }
+    // }
 
 
     return GAMESTATE_PLAY;

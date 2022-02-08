@@ -55,14 +55,20 @@ Viewport* CreateViewport(const char* window_title)
 {
 	Viewport* viewport = (Viewport*)malloc(sizeof(Viewport));
 	viewport->settings = 0;
+		#ifdef __EMSCRIPTEN__
+	u8 pixel_size_web = 3;
+	viewport->screen = (SDL_Rect){0, 0, ZSDL_INTERNAL_WIDTH*pixel_size_web, ZSDL_INTERNAL_HEIGHT*pixel_size_web};
+	SET8IN64(pixel_size_web, &viewport->settings, ZSDL_SETTINGS_BYTE_PIXELSCALE);
+	#else
 	viewport->screen = (SDL_Rect){0, 0, ZSDL_INTERNAL_WIDTH, ZSDL_INTERNAL_HEIGHT};
 	SET8IN64(1, &viewport->settings, ZSDL_SETTINGS_BYTE_PIXELSCALE);
+	#endif
+
 
 	printf("Initialising zSDL viewport...\n");
-	//TODO: replace window scale with pixelscale in viewport struct, see rocketknight.render.c -> presentviewport and computepixelscale
 	viewport->window =
 		SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED_DISPLAY(0), SDL_WINDOWPOS_CENTERED_DISPLAY(0),
-						 ZSDL_INTERNAL_WIDTH, ZSDL_INTERNAL_HEIGHT,
+						 viewport->screen.w, viewport->screen.h,
 						 SDL_WINDOW_SHOWN | SDL_RENDERER_PRESENTVSYNC | SDL_WINDOW_RESIZABLE /*| SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED */);
 	if (viewport->window == NULL)
 	{
